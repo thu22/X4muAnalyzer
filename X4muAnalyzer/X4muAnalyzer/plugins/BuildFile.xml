@@ -67,4 +67,9 @@
 <use  name="TrackingTools/Records"/>
 <use  name="CommonTools/UtilAlgos"/>
 <use  name="FWCore/ServiceRegistry"/>
+<use  name="RecoVertex/VertexTools"/>
+<use name="RecoVertex/KinematicFit"/>
+<use name="RecoVertex/AdaptiveVertexFit"/>
+<use name="RecoVertex/KinematicFitPrimitives"/>
+<use name="RecoVertex/KalmanVertexFit"/>
 <flags EDM_PLUGIN="1"/>
