@@ -66,12 +66,15 @@ public:
   
   void clearVars();
 
+  bool checkOverlap(Run3ScoutingMuon const& scoutingMuon, Run3ScoutingMuon const& scoutingMuonNoVtx);
+
 private:
   const edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> input_scoutingmuon_token_;
+  const edm::EDGetTokenT<std::vector<Run3ScoutingMuon>> input_scoutingmuonNoVtx_token_;
   const edm::EDGetTokenT<std::vector<Run3ScoutingTrack>> input_scoutingtrack_token_;
 
   //std::vector<reco::Muon> RecoMuon_;
-  std::vector<int> MuonCharge_;
+  /* std::vector<int> MuonCharge_;
   std::vector<float> MuonPt_;
   std::vector<float> MuonEta_;
   std::vector<float> MuonPhi_;
@@ -79,7 +82,7 @@ private:
   std::vector<float> normchi2_;
   std::vector<float> trkPt_;
   std::vector<float> trkEta_;
-  std::vector<float> trkPhi_;
+  std::vector<float> trkPhi_; */
 };
 
 //
@@ -87,13 +90,14 @@ private:
 //
 X4muScoutingToRecoMuonProducer::X4muScoutingToRecoMuonProducer( edm::ParameterSet const &iConfig)
     : input_scoutingmuon_token_(consumes(iConfig.getParameter<edm::InputTag>("scoutingMuon"))),
+    input_scoutingmuonNoVtx_token_(consumes(iConfig.getParameter<edm::InputTag>("scoutingMuonNoVtx"))),
     input_scoutingtrack_token_(consumes(iConfig.getParameter<edm::InputTag>("scoutingTrack")))
   {
   //register products
   //produceWithRef<reco::Muon, Run3ScoutingMuon>("recoMuons");
   produces<reco::MuonCollection>("recoMuons");
   produces<reco::TrackCollection>("recoTracks");
-  produces<edm::ValueMap<int>>("charge");
+  /* produces<edm::ValueMap<int>>("charge");
   produces<edm::ValueMap<float>>("pt");
   produces<edm::ValueMap<float>>("eta");
   produces<edm::ValueMap<float>>("phi");
@@ -101,7 +105,7 @@ X4muScoutingToRecoMuonProducer::X4muScoutingToRecoMuonProducer( edm::ParameterSe
   produces<edm::ValueMap<float>>("normchi2");
   produces<edm::ValueMap<float>>("trkPt");
   produces<edm::ValueMap<float>>("trkEta");
-  produces<edm::ValueMap<float>>("trkPhi");
+  produces<edm::ValueMap<float>>("trkPhi"); */
 }
 
 X4muScoutingToRecoMuonProducer::~X4muScoutingToRecoMuonProducer() = default;
@@ -121,7 +125,7 @@ reco::Muon X4muScoutingToRecoMuonProducer::createMuon(Run3ScoutingMuon const& sc
   auto recomuon = reco::Muon(q, p4, createTrack(scoutingMuon).vertex());
 
   //RecoMuon_.push_back(recomuon);
-  MuonCharge_.push_back(q);
+  /* MuonCharge_.push_back(q);
   MuonPt_.push_back(scoutingMuon.pt());
   MuonEta_.push_back(scoutingMuon.eta());
   MuonPhi_.push_back(scoutingMuon.phi());
@@ -129,11 +133,20 @@ reco::Muon X4muScoutingToRecoMuonProducer::createMuon(Run3ScoutingMuon const& sc
   normchi2_.push_back(scoutingMuon.normalizedChi2());
   trkPt_.push_back(scoutingMuon.trk_pt());
   trkEta_.push_back(scoutingMuon.trk_eta());
-  trkPhi_.push_back(scoutingMuon.trk_phi());
+  trkPhi_.push_back(scoutingMuon.trk_phi()); */
 
   //std::cout << "Muon px: " << px << std::endl;
 
   return recomuon;
+}
+
+bool X4muScoutingToRecoMuonProducer::checkOverlap(Run3ScoutingMuon const& scoutingMuon, Run3ScoutingMuon const& scoutingMuonNoVtx)
+{
+  if (scoutingMuon.charge() != scoutingMuonNoVtx.charge()) return false;
+  //if (abs(scoutingMuon.pt() - scoutingMuonNoVtx.pt()) > 1e-3) return false;
+  if (abs(scoutingMuon.eta() - scoutingMuonNoVtx.eta()) > 3e-2) return false;
+  if (abs(scoutingMuon.phi() - scoutingMuonNoVtx.phi()) > 3e-2) return false;
+  return true;
 }
 
 // ------------ method called to produce the data  ------------
@@ -141,8 +154,10 @@ void X4muScoutingToRecoMuonProducer::produce(edm::Event &iEvent, edm::EventSetup
   using namespace edm;
 
   Handle<std::vector<Run3ScoutingMuon>> scoutingmuonHandle;
+  Handle<std::vector<Run3ScoutingMuon>> scoutingmuonNoVtxHandle;
   Handle<std::vector<Run3ScoutingTrack>> scoutingtrackHandle;
   iEvent.getByToken(input_scoutingmuon_token_, scoutingmuonHandle);
+  iEvent.getByToken(input_scoutingmuonNoVtx_token_, scoutingmuonNoVtxHandle);
   iEvent.getByToken(input_scoutingtrack_token_, scoutingtrackHandle);
 
   if(!scoutingmuonHandle.isValid() || !scoutingtrackHandle.isValid()) {
@@ -154,12 +169,56 @@ void X4muScoutingToRecoMuonProducer::produce(edm::Event &iEvent, edm::EventSetup
   auto tkcands = std::make_unique<reco::TrackCollection>();
 
   createMuons(scoutingmuonHandle, pfcands);
+  //Create reco::Muons from scoutingmuonNoVtx
+  if(scoutingmuonNoVtxHandle.isValid()) 
+  {
+    for (unsigned int icand = 0; icand < scoutingmuonNoVtxHandle->size(); ++icand) 
+    {
+      auto &scoutingmuonNoVtx = (*scoutingmuonNoVtxHandle)[icand];
+      bool found = false;
+      for (unsigned int jcand = 0; jcand < scoutingmuonHandle->size(); ++jcand) {
+        auto &scoutingmuon = (*scoutingmuonHandle)[jcand];
+        if (checkOverlap(scoutingmuon, scoutingmuonNoVtx)) 
+        {
+          found = true;
+          break;
+        }
+      }
+      if (!found) 
+      {
+        auto pfcand = createMuon(scoutingmuonNoVtx);
+        if (pfcand.energy() != 0) pfcands->push_back(pfcand);
+      }
+    }
+  }
   createTracks(scoutingmuonHandle, tkcands);
+  //Create reco::Tracks from scoutingmuonNoVtx
+  if(scoutingmuonNoVtxHandle.isValid()) 
+  {
+    for (unsigned int icand = 0; icand < scoutingmuonNoVtxHandle->size(); ++icand) 
+    {
+      auto &scoutingmuonNoVtx = (*scoutingmuonNoVtxHandle)[icand];
+      bool found = false;
+      for (unsigned int jcand = 0; jcand < scoutingmuonHandle->size(); ++jcand) {
+        auto &scoutingmuon = (*scoutingmuonHandle)[jcand];
+        if (checkOverlap(scoutingmuon, scoutingmuonNoVtx)) 
+        {
+          found = true;
+          break;
+        }
+      }
+      if (!found) 
+      {
+        auto tkcand = createTrack(scoutingmuonNoVtx);
+        if (tkcand.pt() != 0) tkcands->push_back(tkcand);
+      }
+    }
+  }
 
   edm::OrphanHandle<reco::MuonCollection> oh = iEvent.put(std::move(pfcands), "recoMuons");
   edm::OrphanHandle<reco::TrackCollection> oh2 = iEvent.put(std::move(tkcands), "recoTracks");
 
-  std::unique_ptr<edm::ValueMap<int>> charge_VM(new edm::ValueMap<int>());
+  /* std::unique_ptr<edm::ValueMap<int>> charge_VM(new edm::ValueMap<int>());
   edm::ValueMap<int>::Filler filler_charge(*charge_VM);
   filler_charge.insert(oh, MuonCharge_.begin(), MuonCharge_.end());
   filler_charge.fill();
@@ -183,11 +242,11 @@ void X4muScoutingToRecoMuonProducer::produce(edm::Event &iEvent, edm::EventSetup
   filler_phi.fill();
   iEvent.put(std::move(phi_VM), "phi");
 
-  /* std::unique_ptr<edm::ValueMap<int>> vertexIndex_VM(new edm::ValueMap<int>());
+  std::unique_ptr<edm::ValueMap<int>> vertexIndex_VM(new edm::ValueMap<int>());
   edm::ValueMap<int>::Filler filler_vertexIndex(*vertexIndex_VM);
   filler_vertexIndex.insert(oh, vertexIndex_.begin(), vertexIndex_.end());
   filler_vertexIndex.fill();
-  iEvent.put(std::move(vertexIndex_VM), "vertexIndex"); */
+  iEvent.put(std::move(vertexIndex_VM), "vertexIndex");
 
   std::unique_ptr<edm::ValueMap<float>> normchi2_VM(new edm::ValueMap<float>());
   edm::ValueMap<float>::Filler filler_normchi2(*normchi2_VM);
@@ -211,14 +270,14 @@ void X4muScoutingToRecoMuonProducer::produce(edm::Event &iEvent, edm::EventSetup
   edm::ValueMap<float>::Filler filler_trkPhi(*trkPhi_VM);
   filler_trkPhi.insert(oh, trkPhi_.begin(), trkPhi_.end());
   filler_trkPhi.fill();
-  iEvent.put(std::move(trkPhi_VM), "trkPhi");
+  iEvent.put(std::move(trkPhi_VM), "trkPhi"); */
 
   clearVars();
 }
 
 void X4muScoutingToRecoMuonProducer::clearVars() {
   //RecoMuon_.clear();
-  MuonCharge_.clear();
+  /* MuonCharge_.clear();
   MuonPt_.clear();
   MuonEta_.clear();
   MuonPhi_.clear();
@@ -226,13 +285,14 @@ void X4muScoutingToRecoMuonProducer::clearVars() {
   normchi2_.clear();
   trkPt_.clear();
   trkEta_.clear();
-  trkPhi_.clear();
+  trkPhi_.clear(); */
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
 void X4muScoutingToRecoMuonProducer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
   desc.add<edm::InputTag>("scoutingMuon", edm::InputTag("hltScoutingMuonPackerVtx"));
+  desc.add<edm::InputTag>("scoutingMuonNoVtx", edm::InputTag("hltScoutingMuonPackerNoVtx"));
   desc.add<edm::InputTag>("scoutingTrack", edm::InputTag("hltScoutingTrackPacker"));
   descriptions.add("X4muScoutingToRecoMuonProducer", desc);
 }
