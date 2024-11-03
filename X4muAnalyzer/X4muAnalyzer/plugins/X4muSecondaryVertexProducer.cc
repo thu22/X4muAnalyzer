@@ -99,10 +99,9 @@ public:
 private:
    const edm::EDGetTokenT<std::vector<reco::Muon>> input_recomuon_token_;
    const edm::EDGetTokenT<std::vector<reco::Track>> input_recoTrack_token_;
-   const double input_MesonMassBig_c;
-   const double input_MesonMassBigErr_c;
-   const double input_MesonMassSmall_c;
-   const double input_MesonMassSmallErr_c;
+   const double input_MesonMass_c;
+   const double input_MesonMassErr_c;
+   const double input_ExMesonMass_c;
    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldToken_; // 声明 magneticFieldToken_
 
    TTree *X4muTree;
@@ -160,6 +159,39 @@ private:
    float Xmass_[36];
    float Xnormchi2_[36];
    int type_[36];
+   /* std::vector<int> Muon3Charge_;
+   std::vector<int> Muon4Charge_;
+   std::vector<float> Muon1Pt_;
+   std::vector<float> Muon2Pt_;
+   std::vector<float> Muon3Pt_;
+   std::vector<float> Muon4Pt_;
+   std::vector<float> Muon1Eta_;
+   std::vector<float> Muon2Eta_;
+   std::vector<float> Muon3Eta_;
+   std::vector<float> Muon4Eta_;
+   std::vector<float> Muon1Phi_;
+   std::vector<float> Muon2Phi_;
+   std::vector<float> Muon3Phi_;
+   std::vector<float> Muon4Phi_;
+   std::vector<float> Muon1Mass_;
+   std::vector<float> Muon2Mass_;
+   std::vector<float> Muon3Mass_;
+   std::vector<float> Muon4Mass_;
+   std::vector<float> J1normchi2_;
+   std::vector<float> J2normchi2_;
+   std::vector<float> J1Pt_;
+   std::vector<float> J2Pt_;
+   std::vector<float> J1Eta_;
+   std::vector<float> J2Eta_;
+   std::vector<float> J1Phi_;
+   std::vector<float> J2Phi_;
+   std::vector<float> J1Mass_;
+   std::vector<float> J2Mass_;
+   std::vector<float> XpT_;
+   std::vector<float> Xeta_;
+   std::vector<float> Xphi_;
+   std::vector<float> Xmass_;
+   std::vector<float> Xnormchi2_; */
 };
 
 //
@@ -168,10 +200,9 @@ private:
 X4muSecondaryVertexProducer::X4muSecondaryVertexProducer(edm::ParameterSet const &iConfig)
     : input_recomuon_token_(consumes(iConfig.getParameter<edm::InputTag>("recoMuon"))),
       input_recoTrack_token_(consumes(iConfig.getParameter<edm::InputTag>("recoTrack"))),
-      input_MesonMassBig_c(iConfig.getParameter<double>("MesonMassBig")),
-      input_MesonMassBigErr_c(iConfig.getParameter<double>("MesonMassBigErr")),
-      input_MesonMassSmall_c(iConfig.getParameter<double>("MesonMassSmall")),
-      input_MesonMassSmallErr_c(iConfig.getParameter<double>("MesonMassSmallErr")),
+      input_MesonMass_c(iConfig.getParameter<double>("MesonMass")),
+      input_MesonMassErr_c(iConfig.getParameter<double>("MesonMassErr")),
+      input_ExMesonMass_c(iConfig.getParameter<double>("ExMesonMass")),
       magneticFieldToken_(esConsumes<MagneticField, IdealMagneticFieldRecord>())
 {
    edm::Service<TFileService> fs;
@@ -225,6 +256,43 @@ X4muSecondaryVertexProducer::X4muSecondaryVertexProducer(edm::ParameterSet const
    X4muTree->Branch("Xmass", Xmass_);
    X4muTree->Branch("Xnormchi2", Xnormchi2_);
    X4muTree->Branch("type", type_);
+
+   // register products
+   /* produces<edm::ValueMap<int>>("Muon1Charge");
+   produces<edm::ValueMap<int>>("Muon2Charge");
+   produces<edm::ValueMap<int>>("Muon3Charge");
+   produces<edm::ValueMap<int>>("Muon4Charge");
+   produces<edm::ValueMap<float>>("Muon1Pt");
+   produces<edm::ValueMap<float>>("Muon2Pt");
+   produces<edm::ValueMap<float>>("Muon3Pt");
+   produces<edm::ValueMap<float>>("Muon4Pt");
+   produces<edm::ValueMap<float>>("Muon1Eta");
+   produces<edm::ValueMap<float>>("Muon2Eta");
+   produces<edm::ValueMap<float>>("Muon3Eta");
+   produces<edm::ValueMap<float>>("Muon4Eta");
+   produces<edm::ValueMap<float>>("Muon1Phi");
+   produces<edm::ValueMap<float>>("Muon2Phi");
+   produces<edm::ValueMap<float>>("Muon3Phi");
+   produces<edm::ValueMap<float>>("Muon4Phi");
+   produces<edm::ValueMap<float>>("Muon1Mass");
+   produces<edm::ValueMap<float>>("Muon2Mass");
+   produces<edm::ValueMap<float>>("Muon3Mass");
+   produces<edm::ValueMap<float>>("Muon4Mass");
+   produces<edm::ValueMap<float>>("J1normchi2");
+   produces<edm::ValueMap<float>>("J2normchi2");
+   produces<edm::ValueMap<float>>("J1Pt");
+   produces<edm::ValueMap<float>>("J2Pt");
+   produces<edm::ValueMap<float>>("J1Eta");
+   produces<edm::ValueMap<float>>("J2Eta");
+   produces<edm::ValueMap<float>>("J1Phi");
+   produces<edm::ValueMap<float>>("J2Phi");
+   produces<edm::ValueMap<float>>("J1Mass");
+   produces<edm::ValueMap<float>>("J2Mass");
+   produces<edm::ValueMap<float>>("XpT");
+   produces<edm::ValueMap<float>>("Xeta");
+   produces<edm::ValueMap<float>>("Xphi");
+   produces<edm::ValueMap<float>>("Xmass");
+   produces<edm::ValueMap<int>>("Xnormchi2"); */
 }
 
 X4muSecondaryVertexProducer::~X4muSecondaryVertexProducer() = default;
@@ -237,10 +305,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
    using namespace reco;
 
    const MagneticField &bFieldHandle = iSetup.getData(magneticFieldToken_);
-   const auto myYmass = input_MesonMassBig_c;
-   const auto myJmass = input_MesonMassSmall_c;
-   const auto myYmasserr = input_MesonMassBigErr_c;
-   const auto myJmasserr = input_MesonMassSmallErr_c;
+   const auto myYmass = input_MesonMass_c;
+   const auto myJmass = input_ExMesonMass_c;
+   const auto myYmasserr = input_MesonMassErr_c;
 
    Handle<std::vector<reco::Muon>> muonHandle;
    Handle<std::vector<reco::Track>> trackHandle;
@@ -248,10 +315,27 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
    iEvent.getByToken(input_recoTrack_token_, trackHandle);
 
    double myMumass = 0.1056583755;
+   //double myYmass = 9.4604;
+   //double myJmass = 3.0969;
    double myMumasserr = myMumass * 1e-6;
+   //double myYmasserr = 0.0001;
+   //double myJmasserr = 0.00004;
    double JvPorbcut = 0.0001;
+   double ProbJcut = 0.005;
    double MassMinCut = 0.001;
    long npairs = 0;
+
+   // Store all possible 4 muons with 12 pair + 34 pair
+   /* vector<TLorentzVector> *mu1P4 = new vector<TLorentzVector>;
+   vector<TLorentzVector> *mu2P4 = new vector<TLorentzVector>;
+   vector<TLorentzVector> *mu3P4 = new vector<TLorentzVector>;
+   vector<TLorentzVector> *mu4P4 = new vector<TLorentzVector>;
+   vector<TLorentzVector> *J1P4 = new vector<TLorentzVector>;
+   vector<TLorentzVector> *J2P4 = new vector<TLorentzVector>;
+   vector<TLorentzVector> *XP4 = new vector<TLorentzVector>;
+   vector<float> *Dimuon1vProb = new vector<float>;
+   vector<float> *Dimuon2vProb = new vector<float>;
+   vector<float> *JJvProb = new vector<float>; */
 
    if (!trackHandle.isValid())
    {
@@ -259,7 +343,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
       return;
    }
 
-   if (trackHandle->size() < 4)
+   if (trackHandle->size() < 4) // 4
    {
       std::cout << "reco::Track size is too small: " << trackHandle->size() << std::endl;
       return;
@@ -401,7 +485,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         goto match1;
                      float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
                      float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
-                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr))
+                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr))
                      {
                         Y1pos = 1;
                         J11NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
@@ -413,7 +497,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J11NoMassMassE = Jpsi1masserr;
                         J12NoMassMassE = Jpsi2masserr;
                      }
-                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr) && vProb2 > vProb1)
+                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && vProb2 > vProb1)
                      {
                         Y1pos = 2;
                         J11NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
@@ -425,6 +509,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J11NoMassMassE = Jpsi2masserr;
                         J12NoMassMassE = Jpsi1masserr;
                      }
+                     else if (psi_vFit1->currentState().mass() > (myJmass - 2.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 2.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 2.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 2.0 * Jpsi2masserr) && vProb2 > ProbJcut && vProb1 > ProbJcut)
+                        continue;
                      else
                         goto match1;
 
@@ -452,25 +538,21 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      {
                         jp1 = myYmass;
                         jp_m_sigma1 = myYmasserr;
-                        jp2 = myJmass;
-                        jp_m_sigma2 = myJmasserr;
                         jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
-                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
                            Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
-                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
                            std::cout << "mu12 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Jpsi1->isEmpty() != true && Jpsi2->isValid() == true)
+                        if (Jpsi1->isEmpty() != true && Jpsi2noMCJJ->isValid() == true)
                         {
                            Jpsi1->movePointerToTheTop();
-                           Jpsi2->movePointerToTheTop();
+                           Jpsi2noMCJJ->movePointerToTheTop();
                            Jpsi1_part = Jpsi1->currentParticle();
-                           Jpsi2_part = Jpsi2->currentParticle();
+                           Jpsi2_part = Jpsi2noMCJJ->currentParticle();
                            Chi_1.push_back(Jpsi1_part);
                            Chi_1.push_back(Jpsi2_part);
                            bool isagoodfit = true;
@@ -493,7 +575,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                               RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
                               RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
-                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2noMCJJ->currentDecayVertex();
                               mu11Ktmp = mu1->currentState().kinematicParameters();
                               mu12Ktmp = mu2->currentState().kinematicParameters();
                               mu13Ktmp = mu3->currentState().kinematicParameters();
@@ -527,25 +609,21 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      {
                         jp2 = myYmass;
                         jp_m_sigma2 = myYmasserr;
-                        jp1 = myJmass;
-                        jp_m_sigma1 = myJmasserr;
                         jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
-                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
                         try
                         {
                            Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
-                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
                            std::cout << "mu34 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Jpsi2->isEmpty() != true && Jpsi1->isValid() == true)
+                        if (Jpsi2->isEmpty() != true && Jpsi1noMCJJ->isValid() == true)
                         {
                            Jpsi2->movePointerToTheTop();
-                           Jpsi1->movePointerToTheTop();
+                           Jpsi1noMCJJ->movePointerToTheTop();
                            Jpsi1_part = Jpsi2->currentParticle();
-                           Jpsi2_part = Jpsi1->currentParticle();
+                           Jpsi2_part = Jpsi1noMCJJ->currentParticle();
                            Chi_1.push_back(Jpsi1_part);
                            Chi_1.push_back(Jpsi2_part);
                            bool isagoodfit = true;
@@ -568,7 +646,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                               RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
                               RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi2->currentDecayVertex();
-                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1noMCJJ->currentDecayVertex();
                               mu11Ktmp = mu1->currentState().kinematicParameters();
                               mu12Ktmp = mu2->currentState().kinematicParameters();
                               mu13Ktmp = mu3->currentState().kinematicParameters();
@@ -676,7 +754,7 @@ match1:
                         goto match2;
                      float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
                      float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
-                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr))
+                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr))
                      {
                         Y2pos = 1;
                         J21NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
@@ -688,7 +766,7 @@ match1:
                         J21NoMassMassE = Jpsi1masserr;
                         J22NoMassMassE = Jpsi2masserr;
                      }
-                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr) && vProb2 > vProb1)
+                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && vProb2 > vProb1)
                      {
                         Y2pos = 2;
                         J21NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
@@ -700,6 +778,8 @@ match1:
                         J21NoMassMassE = Jpsi2masserr;
                         J22NoMassMassE = Jpsi1masserr;
                      }
+                     else if (psi_vFit1->currentState().mass() > (myJmass - 2.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 2.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 2.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 2.0 * Jpsi2masserr) && vProb2 > ProbJcut && vProb1 > ProbJcut)
+                        continue;
                      else
                         goto match2;
 
@@ -727,25 +807,21 @@ match1:
                      {
                         jp1 = myYmass;
                         jp_m_sigma1 = myYmasserr;
-                        jp2 = myJmass;
-                        jp_m_sigma2 = myJmasserr;
                         jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
-                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
                            Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
-                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
                            std::cout << "mu12 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Jpsi1->isEmpty() != true && Jpsi2->isValid() == true)
+                        if (Jpsi1->isEmpty() != true && Jpsi2noMCJJ->isValid() == true)
                         {
                            Jpsi1->movePointerToTheTop();
-                           Jpsi2->movePointerToTheTop();
+                           Jpsi2noMCJJ->movePointerToTheTop();
                            Jpsi1_part = Jpsi1->currentParticle();
-                           Jpsi2_part = Jpsi2->currentParticle();
+                           Jpsi2_part = Jpsi2noMCJJ->currentParticle();
                            Chi_1.push_back(Jpsi1_part);
                            Chi_1.push_back(Jpsi2_part);
                            bool isagoodfit = true;
@@ -768,7 +844,7 @@ match1:
                               RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
                               RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
-                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2noMCJJ->currentDecayVertex();
                               mu21Ktmp = mu1->currentState().kinematicParameters();
                               mu22Ktmp = mu2->currentState().kinematicParameters();
                               mu23Ktmp = mu3->currentState().kinematicParameters();
@@ -802,25 +878,21 @@ match1:
                      {
                         jp2 = myYmass;
                         jp_m_sigma2 = myYmasserr;
-                        jp1 = myJmass;
-                        jp_m_sigma1 = myJmasserr;
                         jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
-                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
                         try
                         {
                            Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
-                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
                            std::cout << "mu34 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Jpsi2->isEmpty() != true && Jpsi1->isValid() == true)
+                        if (Jpsi2->isEmpty() != true && Jpsi1noMCJJ->isValid() == true)
                         {
                            Jpsi2->movePointerToTheTop();
-                           Jpsi1->movePointerToTheTop();
+                           Jpsi1noMCJJ->movePointerToTheTop();
                            Jpsi1_part = Jpsi2->currentParticle();
-                           Jpsi2_part = Jpsi1->currentParticle();
+                           Jpsi2_part = Jpsi1noMCJJ->currentParticle();
                            Chi_1.push_back(Jpsi1_part);
                            Chi_1.push_back(Jpsi2_part);
                            bool isagoodfit = true;
@@ -843,7 +915,7 @@ match1:
                               RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
                               RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi2->currentDecayVertex();
-                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1noMCJJ->currentDecayVertex();
                               mu21Ktmp = mu1->currentState().kinematicParameters();
                               mu22Ktmp = mu2->currentState().kinematicParameters();
                               mu23Ktmp = mu3->currentState().kinematicParameters();
@@ -951,7 +1023,7 @@ match2:
                         goto match3;
                      float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
                      float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
-                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr))
+                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr))
                      {
                         Y3pos = 1;
                         J31NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
@@ -963,7 +1035,7 @@ match2:
                         J31NoMassMassE = Jpsi1masserr;
                         J32NoMassMassE = Jpsi2masserr;
                      }
-                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr) && vProb2 > vProb1)
+                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && vProb2 > vProb1)
                      {
                         Y3pos = 2;
                         J31NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
@@ -975,6 +1047,8 @@ match2:
                         J31NoMassMassE = Jpsi2masserr;
                         J32NoMassMassE = Jpsi1masserr;
                      }
+                     else if (psi_vFit1->currentState().mass() > (myJmass - 2.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 2.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 2.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 2.0 * Jpsi2masserr) && vProb2 > ProbJcut && vProb1 > ProbJcut)
+                        continue;
                      else
                         goto match3;
 
@@ -1002,25 +1076,21 @@ match2:
                      {
                         jp1 = myYmass;
                         jp_m_sigma1 = myYmasserr;
-                        jp2 = myJmass;
-                        jp_m_sigma2 = myJmasserr;
                         jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
-                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
                            Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
-                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
                            std::cout << "mu12 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Jpsi1->isEmpty() != true && Jpsi2->isValid() == true)
+                        if (Jpsi1->isEmpty() != true && Jpsi2noMCJJ->isValid() == true)
                         {
                            Jpsi1->movePointerToTheTop();
-                           Jpsi2->movePointerToTheTop();
+                           Jpsi2noMCJJ->movePointerToTheTop();
                            Jpsi1_part = Jpsi1->currentParticle();
-                           Jpsi2_part = Jpsi2->currentParticle();
+                           Jpsi2_part = Jpsi2noMCJJ->currentParticle();
                            Chi_1.push_back(Jpsi1_part);
                            Chi_1.push_back(Jpsi2_part);
                            bool isagoodfit = true;
@@ -1043,7 +1113,7 @@ match2:
                               RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
                               RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
-                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2noMCJJ->currentDecayVertex();
                               mu31Ktmp = mu1->currentState().kinematicParameters();
                               mu32Ktmp = mu2->currentState().kinematicParameters();
                               mu33Ktmp = mu3->currentState().kinematicParameters();
@@ -1077,25 +1147,21 @@ match2:
                      {
                         jp2 = myYmass;
                         jp_m_sigma2 = myYmasserr;
-                        jp1 = myJmass;
-                        jp_m_sigma1 = myJmasserr;
                         jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
-                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
                         try
                         {
                            Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
-                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
                            std::cout << "mu34 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Jpsi2->isEmpty() != true && Jpsi1->isValid() == true)
+                        if (Jpsi2->isEmpty() != true && Jpsi1noMCJJ->isValid() == true)
                         {
                            Jpsi2->movePointerToTheTop();
-                           Jpsi1->movePointerToTheTop();
+                           Jpsi1noMCJJ->movePointerToTheTop();
                            Jpsi1_part = Jpsi2->currentParticle();
-                           Jpsi2_part = Jpsi1->currentParticle();
+                           Jpsi2_part = Jpsi1noMCJJ->currentParticle();
                            Chi_1.push_back(Jpsi1_part);
                            Chi_1.push_back(Jpsi2_part);
                            bool isagoodfit = true;
@@ -1118,7 +1184,7 @@ match2:
                               RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
                               RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi2->currentDecayVertex();
-                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1noMCJJ->currentDecayVertex();
                               mu31Ktmp = mu1->currentState().kinematicParameters();
                               mu32Ktmp = mu2->currentState().kinematicParameters();
                               mu33Ktmp = mu3->currentState().kinematicParameters();
@@ -1389,10 +1455,9 @@ void X4muSecondaryVertexProducer::fillDescriptions(edm::ConfigurationDescription
    edm::ParameterSetDescription desc;
    desc.add<edm::InputTag>("recoMuon", edm::InputTag("recoMuon"));
    desc.add<edm::InputTag>("recoTrack", edm::InputTag("recoTrack"));
-   desc.add<double>("MesonMassBig");
-   desc.add<double>("MesonMassBigErr");
-   desc.add<double>("MesonMassSmall");
-   desc.add<double>("MesonMassSmallErr");
+   desc.add<double>("MesonMass");
+   desc.add<double>("MesonMassErr");
+   desc.add<double>("ExMesonMass");
    descriptions.add("X4muSecondaryVertexProducer", desc);
 }
 
