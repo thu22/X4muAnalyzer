@@ -99,6 +99,10 @@ public:
 private:
    const edm::EDGetTokenT<std::vector<reco::Muon>> input_recomuon_token_;
    const edm::EDGetTokenT<std::vector<reco::Track>> input_recoTrack_token_;
+   const double input_MesonMassBig_c;
+   const double input_MesonMassBigErr_c;
+   const double input_MesonMassSmall_c;
+   const double input_MesonMassSmallErr_c;
    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldToken_; // 声明 magneticFieldToken_
 
    TTree *X4muTree;
@@ -130,52 +134,32 @@ private:
    float Muon4Mass_[36];
    float J1normchi2_[36];
    float J2normchi2_[36];
+   float J1NoMassnormchi2_[36];
+   float J2NoMassnormchi2_[36];
    float J1Pt_[36];
    float J2Pt_[36];
+   float J1NoMassPt_[36];
+   float J2NoMassPt_[36];
    float J1Eta_[36];
    float J2Eta_[36];
+   float J1NoMassEta_[36];
+   float J2NoMassEta_[36];
    float J1Phi_[36];
    float J2Phi_[36];
+   float J1NoMassPhi_[36];
+   float J2NoMassPhi_[36];
    float J1Mass_[36];
    float J2Mass_[36];
+   float J1NoMassMass_[36];
+   float J1NoMassMassE_[36];
+   float J2NoMassMass_[36];
+   float J2NoMassMassE_[36];
    float XpT_[36];
    float Xeta_[36];
    float Xphi_[36];
    float Xmass_[36];
    float Xnormchi2_[36];
-   /* std::vector<int> Muon3Charge_;
-   std::vector<int> Muon4Charge_;
-   std::vector<float> Muon1Pt_;
-   std::vector<float> Muon2Pt_;
-   std::vector<float> Muon3Pt_;
-   std::vector<float> Muon4Pt_;
-   std::vector<float> Muon1Eta_;
-   std::vector<float> Muon2Eta_;
-   std::vector<float> Muon3Eta_;
-   std::vector<float> Muon4Eta_;
-   std::vector<float> Muon1Phi_;
-   std::vector<float> Muon2Phi_;
-   std::vector<float> Muon3Phi_;
-   std::vector<float> Muon4Phi_;
-   std::vector<float> Muon1Mass_;
-   std::vector<float> Muon2Mass_;
-   std::vector<float> Muon3Mass_;
-   std::vector<float> Muon4Mass_;
-   std::vector<float> J1normchi2_;
-   std::vector<float> J2normchi2_;
-   std::vector<float> J1Pt_;
-   std::vector<float> J2Pt_;
-   std::vector<float> J1Eta_;
-   std::vector<float> J2Eta_;
-   std::vector<float> J1Phi_;
-   std::vector<float> J2Phi_;
-   std::vector<float> J1Mass_;
-   std::vector<float> J2Mass_;
-   std::vector<float> XpT_;
-   std::vector<float> Xeta_;
-   std::vector<float> Xphi_;
-   std::vector<float> Xmass_;
-   std::vector<float> Xnormchi2_; */
+   int type_[36];
 };
 
 //
@@ -184,6 +168,10 @@ private:
 X4muSecondaryVertexProducer::X4muSecondaryVertexProducer(edm::ParameterSet const &iConfig)
     : input_recomuon_token_(consumes(iConfig.getParameter<edm::InputTag>("recoMuon"))),
       input_recoTrack_token_(consumes(iConfig.getParameter<edm::InputTag>("recoTrack"))),
+      input_MesonMassBig_c(iConfig.getParameter<double>("MesonMassBig")),
+      input_MesonMassBigErr_c(iConfig.getParameter<double>("MesonMassBigErr")),
+      input_MesonMassSmall_c(iConfig.getParameter<double>("MesonMassSmall")),
+      input_MesonMassSmallErr_c(iConfig.getParameter<double>("MesonMassSmallErr")),
       magneticFieldToken_(esConsumes<MagneticField, IdealMagneticFieldRecord>())
 {
    edm::Service<TFileService> fs;
@@ -211,56 +199,32 @@ X4muSecondaryVertexProducer::X4muSecondaryVertexProducer(edm::ParameterSet const
    X4muTree->Branch("Muon4Mass", Muon4Mass_);
    X4muTree->Branch("J1normchi2", J1normchi2_);
    X4muTree->Branch("J2normchi2", J2normchi2_);
+   X4muTree->Branch("J1NoMassnormchi2", J1NoMassnormchi2_);
+   X4muTree->Branch("J2NoMassnormchi2", J2NoMassnormchi2_);
    X4muTree->Branch("J1Pt", J1Pt_);
    X4muTree->Branch("J2Pt", J2Pt_);
+   X4muTree->Branch("J1NoMassPt", J1NoMassPt_);
+   X4muTree->Branch("J2NoMassPt", J2NoMassPt_);
    X4muTree->Branch("J1Eta", J1Eta_);
    X4muTree->Branch("J2Eta", J2Eta_);
+   X4muTree->Branch("J1NoMassEta", J1NoMassEta_);
+   X4muTree->Branch("J2NoMassEta", J2NoMassEta_);
    X4muTree->Branch("J1Phi", J1Phi_);
    X4muTree->Branch("J2Phi", J2Phi_);
+   X4muTree->Branch("J1NoMassPhi", J1NoMassPhi_);
+   X4muTree->Branch("J2NoMassPhi", J2NoMassPhi_);
    X4muTree->Branch("J1Mass", J1Mass_);
    X4muTree->Branch("J2Mass", J2Mass_);
+   X4muTree->Branch("J1NoMassMass", J1NoMassMass_);
+   X4muTree->Branch("J1NoMassMassE", J1NoMassMassE_);
+   X4muTree->Branch("J2NoMassMass", J2NoMassMass_);
+   X4muTree->Branch("J2NoMassMassE", J2NoMassMassE_);
    X4muTree->Branch("XpT", XpT_);
    X4muTree->Branch("Xeta", Xeta_);
    X4muTree->Branch("Xphi", Xphi_);
    X4muTree->Branch("Xmass", Xmass_);
    X4muTree->Branch("Xnormchi2", Xnormchi2_);
-
-   // register products
-   /* produces<edm::ValueMap<int>>("Muon1Charge");
-   produces<edm::ValueMap<int>>("Muon2Charge");
-   produces<edm::ValueMap<int>>("Muon3Charge");
-   produces<edm::ValueMap<int>>("Muon4Charge");
-   produces<edm::ValueMap<float>>("Muon1Pt");
-   produces<edm::ValueMap<float>>("Muon2Pt");
-   produces<edm::ValueMap<float>>("Muon3Pt");
-   produces<edm::ValueMap<float>>("Muon4Pt");
-   produces<edm::ValueMap<float>>("Muon1Eta");
-   produces<edm::ValueMap<float>>("Muon2Eta");
-   produces<edm::ValueMap<float>>("Muon3Eta");
-   produces<edm::ValueMap<float>>("Muon4Eta");
-   produces<edm::ValueMap<float>>("Muon1Phi");
-   produces<edm::ValueMap<float>>("Muon2Phi");
-   produces<edm::ValueMap<float>>("Muon3Phi");
-   produces<edm::ValueMap<float>>("Muon4Phi");
-   produces<edm::ValueMap<float>>("Muon1Mass");
-   produces<edm::ValueMap<float>>("Muon2Mass");
-   produces<edm::ValueMap<float>>("Muon3Mass");
-   produces<edm::ValueMap<float>>("Muon4Mass");
-   produces<edm::ValueMap<float>>("J1normchi2");
-   produces<edm::ValueMap<float>>("J2normchi2");
-   produces<edm::ValueMap<float>>("J1Pt");
-   produces<edm::ValueMap<float>>("J2Pt");
-   produces<edm::ValueMap<float>>("J1Eta");
-   produces<edm::ValueMap<float>>("J2Eta");
-   produces<edm::ValueMap<float>>("J1Phi");
-   produces<edm::ValueMap<float>>("J2Phi");
-   produces<edm::ValueMap<float>>("J1Mass");
-   produces<edm::ValueMap<float>>("J2Mass");
-   produces<edm::ValueMap<float>>("XpT");
-   produces<edm::ValueMap<float>>("Xeta");
-   produces<edm::ValueMap<float>>("Xphi");
-   produces<edm::ValueMap<float>>("Xmass");
-   produces<edm::ValueMap<int>>("Xnormchi2"); */
+   X4muTree->Branch("type", type_);
 }
 
 X4muSecondaryVertexProducer::~X4muSecondaryVertexProducer() = default;
@@ -273,6 +237,10 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
    using namespace reco;
 
    const MagneticField &bFieldHandle = iSetup.getData(magneticFieldToken_);
+   const auto myYmass = input_MesonMassBig_c;
+   const auto myJmass = input_MesonMassSmall_c;
+   const auto myYmasserr = input_MesonMassBigErr_c;
+   const auto myJmasserr = input_MesonMassSmallErr_c;
 
    Handle<std::vector<reco::Muon>> muonHandle;
    Handle<std::vector<reco::Track>> trackHandle;
@@ -280,24 +248,10 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
    iEvent.getByToken(input_recoTrack_token_, trackHandle);
 
    double myMumass = 0.1056583755;
-   double myJmass = 3.0969;
    double myMumasserr = myMumass * 1e-6;
-   double myJmasserr = 0.00004;
    double JvPorbcut = 0.0001;
    double MassMinCut = 0.001;
    long npairs = 0;
-
-   // Store all possible 4 muons with 12 pair + 34 pair
-   /* vector<TLorentzVector> *mu1P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *mu2P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *mu3P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *mu4P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *J1P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *J2P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *XP4 = new vector<TLorentzVector>;
-   vector<float> *Dimuon1vProb = new vector<float>;
-   vector<float> *Dimuon2vProb = new vector<float>;
-   vector<float> *JJvProb = new vector<float>; */
 
    if (!trackHandle.isValid())
    {
@@ -305,7 +259,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
       return;
    }
 
-   if (trackHandle->size() < 4) // 4
+   if (trackHandle->size() < 4)
    {
       std::cout << "reco::Track size is too small: " << trackHandle->size() << std::endl;
       return;
@@ -320,7 +274,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
          {
             for (std::vector<reco::Track>::const_iterator iMuon4 = iMuon3 + 1; iMuon4 != trackHandle->end(); ++iMuon4)
             {
-               //float mu4pairChi[3] = {}; //[0] for 12+34, [1] for 13+24, [2] for 14+23
+               // float mu4pairChi[3] = {}; //[0] for 12+34, [1] for 13+24, [2] for 14+23
 
                reco::Track muTrack1 = *iMuon1;
                reco::Track muTrack2 = *iMuon2;
@@ -341,6 +295,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                TLorentzVector mu11P4tmp, mu12P4tmp, mu13P4tmp, mu14P4tmp, J11P4tmp, J12P4tmp, X1P4tmp;
                TLorentzVector mu21P4tmp, mu22P4tmp, mu23P4tmp, mu24P4tmp, J21P4tmp, J22P4tmp, X2P4tmp;
                TLorentzVector mu31P4tmp, mu32P4tmp, mu33P4tmp, mu34P4tmp, J31P4tmp, J32P4tmp, X3P4tmp;
+               TLorentzVector J11NoMassP4tmp, J12NoMassP4tmp, J21NoMassP4tmp, J22NoMassP4tmp, J31NoMassP4tmp, J32NoMassP4tmp;
+               KinematicParameters J11NoMassKtmp, J12NoMassKtmp, J21NoMassKtmp, J22NoMassKtmp, J31NoMassKtmp, J32NoMassKtmp;
                KinematicParameters mu11Ktmp, mu12Ktmp, mu13Ktmp, mu14Ktmp, J11Ktmp, J12Ktmp, X1Ktmp;
                KinematicParameters mu21Ktmp, mu22Ktmp, mu23Ktmp, mu24Ktmp, J21Ktmp, J22Ktmp, X2Ktmp;
                KinematicParameters mu31Ktmp, mu32Ktmp, mu33Ktmp, mu34Ktmp, J31Ktmp, J32Ktmp, X3Ktmp;
@@ -348,16 +304,27 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                float Muon21Mass, Muon22Mass, Muon23Mass, Muon24Mass;
                float Muon31Mass, Muon32Mass, Muon33Mass, Muon34Mass;
                float J11Mass, J12Mass, J21Mass, J22Mass, J31Mass, J32Mass;
+               float J11NoMassMass, J12NoMassMass, J21NoMassMass, J22NoMassMass, J31NoMassMass, J32NoMassMass;
+               float J11NoMassMassE, J12NoMassMassE, J21NoMassMassE, J22NoMassMassE, J31NoMassMassE, J32NoMassMassE;
                float X1Mass, X2Mass, X3Mass;
                float J11normchi2 = 999.0;
+               float J11NoMassnormchi2 = 999.0;
                float J12normchi2 = 999.0;
+               float J12NoMassnormchi2 = 999.0;
                float J21normchi2 = 999.0;
+               float J21NoMassnormchi2 = 999.0;
                float J22normchi2 = 999.0;
+               float J22NoMassnormchi2 = 999.0;
                float J31normchi2 = 999.0;
+               float J31NoMassnormchi2 = 999.0;
                float J32normchi2 = 999.0;
+               float J32NoMassnormchi2 = 999.0;
                float X1normchi2 = 999.0;
                float X2normchi2 = 999.0;
                float X3normchi2 = 999.0;
+               int Y1pos = -1;
+               int Y2pos = -1;
+               int Y3pos = -1;
 
                // 12+34
                if ((iMuon1->charge() + iMuon2->charge()) == 0 && (iMuon3->charge() + iMuon4->charge()) == 0)
@@ -382,7 +349,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   mu4Particles.push_back(pmumuFactory.particle(muonTT3, muon_mass, chi, ndf, muon_sigma));
                   mu4Particles.push_back(pmumuFactory.particle(muonTT4, muon_mass, chi, ndf, muon_sigma));
 
-                  if (dimuon1Particles.size() < 2 || dimuon2Particles.size() < 2 || mu4Particles.size() < 4) continue;
+                  if (dimuon1Particles.size() < 2 || dimuon2Particles.size() < 2 || mu4Particles.size() < 4)
+                     goto match1;
 
                   KinematicParticleVertexFitter fitter1, fitter2, mu4fitter;
                   RefCountedKinematicTree psiVertexFitTree1, psiVertexFitTree2, XVertexFitTree;
@@ -405,9 +373,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicVertex X_vFit_vertex = XVertexFitTree->currentDecayVertex();
 
                      if (!psi_vFit1->currentState().isValid() || !psi_vFit2->currentState().isValid() || !X_vFit->currentState().isValid())
-                        continue;
+                        goto match1;
                      if (!psi_vFit_vertex1->vertexIsValid() || !psi_vFit_vertex2->vertexIsValid() || !X_vFit_vertex->vertexIsValid())
-                        continue;
+                        goto match1;
 
                      // KinematicParameters Jpara1 = psi_vFit1->currentState().kinematicParameters();
                      // KinematicParameters Jpara2 = psi_vFit2->currentState().kinematicParameters();
@@ -426,9 +394,39 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      double vProb2 = ChiSquaredProbability((double)(psi_vFit_vertex2->chiSquared()), (double)(psi_vFit_vertex2->degreesOfFreedom()));
                      // double XvProb = ChiSquaredProbability((double)(X_vFit_vertex->chiSquared()), (double)(X_vFit_vertex->degreesOfFreedom()));
                      if (vProb1 < JvPorbcut || vProb2 < JvPorbcut)
-                        continue;
+                        goto match1;
                      if (mu1->currentState().mass() <= MassMinCut || mu2->currentState().mass() <= MassMinCut || mu3->currentState().mass() <= MassMinCut || mu4->currentState().mass() <= MassMinCut || psi_vFit1->currentState().mass() <= MassMinCut || psi_vFit2->currentState().mass() <= MassMinCut || X_vFit->currentState().mass() <= MassMinCut)
-                        continue;
+                        goto match1;
+                     if (psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6) < 0 || psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6) < 0 || X_vFit->currentState().kinematicParametersError().matrix()(6, 6) < 0)
+                        goto match1;
+                     float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
+                     float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
+                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr))
+                     {
+                        Y1pos = 1;
+                        J11NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
+                        J12NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
+                        J11NoMassP4tmp.SetPxPyPzE(J11NoMassKtmp.momentum().x(), J11NoMassKtmp.momentum().y(), J11NoMassKtmp.momentum().z(), psi_vFit1->currentState().mass());
+                        J12NoMassP4tmp.SetPxPyPzE(J12NoMassKtmp.momentum().x(), J12NoMassKtmp.momentum().y(), J12NoMassKtmp.momentum().z(), psi_vFit2->currentState().mass());
+                        J11NoMassMass = psi_vFit1->currentState().mass();
+                        J12NoMassMass = psi_vFit2->currentState().mass();
+                        J11NoMassMassE = Jpsi1masserr;
+                        J12NoMassMassE = Jpsi2masserr;
+                     }
+                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr) && vProb2 > vProb1)
+                     {
+                        Y1pos = 2;
+                        J11NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
+                        J12NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
+                        J11NoMassP4tmp.SetPxPyPzE(J11NoMassKtmp.momentum().x(), J11NoMassKtmp.momentum().y(), J11NoMassKtmp.momentum().z(), psi_vFit2->currentState().mass());
+                        J12NoMassP4tmp.SetPxPyPzE(J12NoMassKtmp.momentum().x(), J12NoMassKtmp.momentum().y(), J12NoMassKtmp.momentum().z(), psi_vFit1->currentState().mass());
+                        J11NoMassMass = psi_vFit2->currentState().mass();
+                        J12NoMassMass = psi_vFit1->currentState().mass();
+                        J11NoMassMassE = Jpsi2masserr;
+                        J12NoMassMassE = Jpsi1masserr;
+                     }
+                     else
+                        goto match1;
 
                      // Mass Constraint Fit for J/psi
                      KinematicParticleVertexFitter kpvFitter;
@@ -438,6 +436,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      KinematicConstraint *jpsi_c1;
                      KinematicConstraint *jpsi_c2;
                      vector<RefCountedKinematicParticle> muonP12, muonP34;
+                     RefCountedKinematicParticle Jpsi1_part, Jpsi2_part;
+                     vector<RefCountedKinematicParticle> Chi_1;
                      muonP12.push_back(pmumuFactory.particle(muonTT1, muon_mass, chi1, ndf1, muon_sigma));
                      muonP12.push_back(pmumuFactory.particle(muonTT2, muon_mass, chi1, ndf1, muon_sigma));
                      muonP34.push_back(pmumuFactory.particle(muonTT3, muon_mass, chi2, ndf2, muon_sigma));
@@ -448,91 +448,159 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicTree Jpsi2noMCJJ = kpvFitter.fit(muonP34);
                      RefCountedKinematicTree Chi1_bTree;
                      RefCountedKinematicParticle MyChi1_part;
-                     jp1 = myJmass;
-                     jp_m_sigma1 = myJmasserr;
-                     jp2 = myJmass;
-                     jp_m_sigma2 = myJmasserr;
-                     jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
-                     jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
-                     RefCountedKinematicParticle Jpsi1_part, Jpsi2_part;
-                     vector<RefCountedKinematicParticle> Chi_1;
-                     try
+                     if (Y1pos == 1)
                      {
-                        Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
-                     }
-                     catch (VertexException const &x)
-                     {
-                        std::cout << "mu12 vertex exception with mass constrainted to J!" << std::endl;
-                     }
-                     try
-                     {
-                        Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
-                     }
-                     catch (VertexException const &x)
-                     {
-                        std::cout << "mu34 vertex exception with mass constrainted to J!" << std::endl;
-                     }
-
-                     if (Jpsi1->isEmpty() != true && Jpsi2->isEmpty() != true)
-                     {
-                        Jpsi1->movePointerToTheTop();
-                        Jpsi2->movePointerToTheTop();
-                        Jpsi1_part = Jpsi1->currentParticle();
-                        Jpsi2_part = Jpsi2->currentParticle();
-                        Chi_1.push_back(Jpsi1_part);
-                        Chi_1.push_back(Jpsi2_part);
-                        bool isagoodfit = true;
+                        jp1 = myYmass;
+                        jp_m_sigma1 = myYmasserr;
+                        jp2 = myJmass;
+                        jp_m_sigma2 = myJmasserr;
+                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
+                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
-                           Chi1_bTree = kpvFitter.fit(Chi_1);
+                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
+                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
-                           isagoodfit = false;
-                           cout << "mu12 and mu34 vertex exception with mu12 and mu34 constrained to JJ" << endl;
+                           std::cout << "mu12 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Chi1_bTree->isValid() && isagoodfit)
+                        if (Jpsi1->isEmpty() != true && Jpsi2->isValid() == true)
                         {
-                           Chi1_bTree->movePointerToTheTop();
-                           RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
-                           Chi1_bTree->movePointerToTheFirstChild();
-                           RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
-                           Chi1_bTree->movePointerToTheNextChild();
-                           RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
+                           Jpsi1->movePointerToTheTop();
+                           Jpsi2->movePointerToTheTop();
+                           Jpsi1_part = Jpsi1->currentParticle();
+                           Jpsi2_part = Jpsi2->currentParticle();
+                           Chi_1.push_back(Jpsi1_part);
+                           Chi_1.push_back(Jpsi2_part);
+                           bool isagoodfit = true;
+                           try
+                           {
+                              Chi1_bTree = kpvFitter.fit(Chi_1);
+                           }
+                           catch (VertexException const &x)
+                           {
+                              isagoodfit = false;
+                              cout << "mu12 and mu34 vertex exception with mu12 and mu34 constrained to JJ" << endl;
+                           }
+                           if (Chi1_bTree->isValid() && isagoodfit)
+                           {
+                              Chi1_bTree->movePointerToTheTop();
+                              RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
+                              Chi1_bTree->movePointerToTheFirstChild();
+                              RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
+                              Chi1_bTree->movePointerToTheNextChild();
+                              RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
-                           RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
-                           RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
-                           mu11Ktmp = mu1->currentState().kinematicParameters();
-                           mu12Ktmp = mu2->currentState().kinematicParameters();
-                           mu13Ktmp = mu3->currentState().kinematicParameters();
-                           mu14Ktmp = mu4->currentState().kinematicParameters();
-                           J11Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
-                           J12Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
-                           Chi1_bTree->movePointerToTheTop();
-                           MyChi1_part = Chi1_bTree->currentParticle();
-                           X1Ktmp = MyChi1_part->currentState().kinematicParameters();
-                           mu11P4tmp.SetPxPyPzE(mu11Ktmp.momentum().x(), mu11Ktmp.momentum().y(), mu11Ktmp.momentum().z(), mu1->currentState().mass());
-                           mu12P4tmp.SetPxPyPzE(mu12Ktmp.momentum().x(), mu12Ktmp.momentum().y(), mu12Ktmp.momentum().z(), mu2->currentState().mass());
-                           mu13P4tmp.SetPxPyPzE(mu13Ktmp.momentum().x(), mu13Ktmp.momentum().y(), mu13Ktmp.momentum().z(), mu3->currentState().mass());
-                           mu14P4tmp.SetPxPyPzE(mu14Ktmp.momentum().x(), mu14Ktmp.momentum().y(), mu14Ktmp.momentum().z(), mu4->currentState().mass());
-                           J11P4tmp.SetPxPyPzE(J11Ktmp.momentum().x(), J11Ktmp.momentum().y(), J11Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
-                           J12P4tmp.SetPxPyPzE(J12Ktmp.momentum().x(), J12Ktmp.momentum().y(), J12Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
-                           X1P4tmp.SetPxPyPzE(X1Ktmp.momentum().x(), X1Ktmp.momentum().y(), X1Ktmp.momentum().z(), MyChi1_part->currentState().mass());
-                           Muon11Mass = mu1->currentState().mass();
-                           Muon12Mass = mu2->currentState().mass();
-                           Muon13Mass = mu3->currentState().mass();
-                           Muon14Mass = mu4->currentState().mass();
-                           J11normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
-                           J12normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
-                           J11Mass = jpsi1In2JpsiVertex->currentState().mass();
-                           J12Mass = jpsi2In2JpsiVertex->currentState().mass();
-                           X1Mass = MyChi1_part->currentState().mass();
-                           X1normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                              RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
+                              mu11Ktmp = mu1->currentState().kinematicParameters();
+                              mu12Ktmp = mu2->currentState().kinematicParameters();
+                              mu13Ktmp = mu3->currentState().kinematicParameters();
+                              mu14Ktmp = mu4->currentState().kinematicParameters();
+                              J11Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
+                              J12Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
+                              Chi1_bTree->movePointerToTheTop();
+                              MyChi1_part = Chi1_bTree->currentParticle();
+                              X1Ktmp = MyChi1_part->currentState().kinematicParameters();
+                              mu11P4tmp.SetPxPyPzE(mu11Ktmp.momentum().x(), mu11Ktmp.momentum().y(), mu11Ktmp.momentum().z(), mu1->currentState().mass());
+                              mu12P4tmp.SetPxPyPzE(mu12Ktmp.momentum().x(), mu12Ktmp.momentum().y(), mu12Ktmp.momentum().z(), mu2->currentState().mass());
+                              mu13P4tmp.SetPxPyPzE(mu13Ktmp.momentum().x(), mu13Ktmp.momentum().y(), mu13Ktmp.momentum().z(), mu3->currentState().mass());
+                              mu14P4tmp.SetPxPyPzE(mu14Ktmp.momentum().x(), mu14Ktmp.momentum().y(), mu14Ktmp.momentum().z(), mu4->currentState().mass());
+                              J11P4tmp.SetPxPyPzE(J11Ktmp.momentum().x(), J11Ktmp.momentum().y(), J11Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
+                              J12P4tmp.SetPxPyPzE(J12Ktmp.momentum().x(), J12Ktmp.momentum().y(), J12Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
+                              X1P4tmp.SetPxPyPzE(X1Ktmp.momentum().x(), X1Ktmp.momentum().y(), X1Ktmp.momentum().z(), MyChi1_part->currentState().mass());
+                              Muon11Mass = mu1->currentState().mass();
+                              Muon12Mass = mu2->currentState().mass();
+                              Muon13Mass = mu3->currentState().mass();
+                              Muon14Mass = mu4->currentState().mass();
+                              J11normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
+                              J12normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
+                              J11Mass = jpsi1In2JpsiVertex->currentState().mass();
+                              J12Mass = jpsi2In2JpsiVertex->currentState().mass();
+                              X1Mass = MyChi1_part->currentState().mass();
+                              X1normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                           }
+                        }
+                     }
+                     else if (Y1pos == 2)
+                     {
+                        jp2 = myYmass;
+                        jp_m_sigma2 = myYmasserr;
+                        jp1 = myJmass;
+                        jp_m_sigma1 = myJmasserr;
+                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
+                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
+                        try
+                        {
+                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
+                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
+                        }
+                        catch (VertexException const &x)
+                        {
+                           std::cout << "mu34 vertex exception with mass constrainted to J!" << std::endl;
+                        }
+                        if (Jpsi2->isEmpty() != true && Jpsi1->isValid() == true)
+                        {
+                           Jpsi2->movePointerToTheTop();
+                           Jpsi1->movePointerToTheTop();
+                           Jpsi1_part = Jpsi2->currentParticle();
+                           Jpsi2_part = Jpsi1->currentParticle();
+                           Chi_1.push_back(Jpsi1_part);
+                           Chi_1.push_back(Jpsi2_part);
+                           bool isagoodfit = true;
+                           try
+                           {
+                              Chi1_bTree = kpvFitter.fit(Chi_1);
+                           }
+                           catch (VertexException const &x)
+                           {
+                              isagoodfit = false;
+                              cout << "mu12 and mu34 vertex exception with mu12 and mu34 constrained to JJ" << endl;
+                           }
+                           if (Chi1_bTree->isValid() && isagoodfit)
+                           {
+                              Chi1_bTree->movePointerToTheTop();
+                              RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
+                              Chi1_bTree->movePointerToTheFirstChild();
+                              RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
+                              Chi1_bTree->movePointerToTheNextChild();
+                              RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
+
+                              RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi2->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1->currentDecayVertex();
+                              mu11Ktmp = mu1->currentState().kinematicParameters();
+                              mu12Ktmp = mu2->currentState().kinematicParameters();
+                              mu13Ktmp = mu3->currentState().kinematicParameters();
+                              mu14Ktmp = mu4->currentState().kinematicParameters();
+                              J11Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
+                              J12Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
+                              Chi1_bTree->movePointerToTheTop();
+                              MyChi1_part = Chi1_bTree->currentParticle();
+                              X1Ktmp = MyChi1_part->currentState().kinematicParameters();
+                              mu11P4tmp.SetPxPyPzE(mu11Ktmp.momentum().x(), mu11Ktmp.momentum().y(), mu11Ktmp.momentum().z(), mu1->currentState().mass());
+                              mu12P4tmp.SetPxPyPzE(mu12Ktmp.momentum().x(), mu12Ktmp.momentum().y(), mu12Ktmp.momentum().z(), mu2->currentState().mass());
+                              mu13P4tmp.SetPxPyPzE(mu13Ktmp.momentum().x(), mu13Ktmp.momentum().y(), mu13Ktmp.momentum().z(), mu3->currentState().mass());
+                              mu14P4tmp.SetPxPyPzE(mu14Ktmp.momentum().x(), mu14Ktmp.momentum().y(), mu14Ktmp.momentum().z(), mu4->currentState().mass());
+                              J11P4tmp.SetPxPyPzE(J11Ktmp.momentum().x(), J11Ktmp.momentum().y(), J11Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
+                              J12P4tmp.SetPxPyPzE(J12Ktmp.momentum().x(), J12Ktmp.momentum().y(), J12Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
+                              X1P4tmp.SetPxPyPzE(X1Ktmp.momentum().x(), X1Ktmp.momentum().y(), X1Ktmp.momentum().z(), MyChi1_part->currentState().mass());
+                              Muon11Mass = mu1->currentState().mass();
+                              Muon12Mass = mu2->currentState().mass();
+                              Muon13Mass = mu3->currentState().mass();
+                              Muon14Mass = mu4->currentState().mass();
+                              J11normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
+                              J12normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
+                              J11Mass = jpsi1In2JpsiVertex->currentState().mass();
+                              J12Mass = jpsi2In2JpsiVertex->currentState().mass();
+                              X1Mass = MyChi1_part->currentState().mass();
+                              X1normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                           }
                         }
                      }
                   }
                }
-
+match1:
                // 13+24
                if ((iMuon1->charge() + iMuon3->charge()) == 0 && (iMuon2->charge() + iMuon4->charge()) == 0)
                {
@@ -557,7 +625,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   mu4Particles.push_back(pmumuFactory.particle(muonTT4, muon_mass, chi, ndf, muon_sigma));
 
                   if (dimuon1Particles.size() < 2 || dimuon2Particles.size() < 2 || mu4Particles.size() < 4)
-                     continue;
+                     goto match2;
 
                   KinematicParticleVertexFitter fitter1, fitter2, mu4fitter;
                   RefCountedKinematicTree psiVertexFitTree1, psiVertexFitTree2, XVertexFitTree;
@@ -580,9 +648,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicVertex X_vFit_vertex = XVertexFitTree->currentDecayVertex();
 
                      if (!psi_vFit1->currentState().isValid() || !psi_vFit2->currentState().isValid() || !X_vFit->currentState().isValid())
-                        continue;
+                        goto match2;
                      if (!psi_vFit_vertex1->vertexIsValid() || !psi_vFit_vertex2->vertexIsValid() || !X_vFit_vertex->vertexIsValid())
-                        continue;
+                        goto match2;
 
                      // KinematicParameters Jpara1 = psi_vFit1->currentState().kinematicParameters();
                      // KinematicParameters Jpara2 = psi_vFit2->currentState().kinematicParameters();
@@ -601,9 +669,39 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      double vProb2 = ChiSquaredProbability((double)(psi_vFit_vertex2->chiSquared()), (double)(psi_vFit_vertex2->degreesOfFreedom()));
                      // double XvProb = ChiSquaredProbability((double)(X_vFit_vertex->chiSquared()), (double)(X_vFit_vertex->degreesOfFreedom()));
                      if (vProb1 < JvPorbcut || vProb2 < JvPorbcut)
-                        continue;
+                        goto match2;
                      if (mu1->currentState().mass() <= MassMinCut || mu2->currentState().mass() <= MassMinCut || mu3->currentState().mass() <= MassMinCut || mu4->currentState().mass() <= MassMinCut || psi_vFit1->currentState().mass() <= MassMinCut || psi_vFit2->currentState().mass() <= MassMinCut || X_vFit->currentState().mass() <= MassMinCut)
-                        continue;
+                        goto match2;
+                     if (psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6) < 0 || psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6) < 0 || X_vFit->currentState().kinematicParametersError().matrix()(6, 6) < 0)
+                        goto match2;
+                     float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
+                     float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
+                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr))
+                     {
+                        Y2pos = 1;
+                        J21NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
+                        J22NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
+                        J21NoMassP4tmp.SetPxPyPzE(J21NoMassKtmp.momentum().x(), J21NoMassKtmp.momentum().y(), J21NoMassKtmp.momentum().z(), psi_vFit1->currentState().mass());
+                        J22NoMassP4tmp.SetPxPyPzE(J22NoMassKtmp.momentum().x(), J22NoMassKtmp.momentum().y(), J22NoMassKtmp.momentum().z(), psi_vFit2->currentState().mass());
+                        J21NoMassMass = psi_vFit1->currentState().mass();
+                        J22NoMassMass = psi_vFit2->currentState().mass();
+                        J21NoMassMassE = Jpsi1masserr;
+                        J22NoMassMassE = Jpsi2masserr;
+                     }
+                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr) && vProb2 > vProb1)
+                     {
+                        Y2pos = 2;
+                        J21NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
+                        J22NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
+                        J21NoMassP4tmp.SetPxPyPzE(J21NoMassKtmp.momentum().x(), J21NoMassKtmp.momentum().y(), J21NoMassKtmp.momentum().z(), psi_vFit2->currentState().mass());
+                        J22NoMassP4tmp.SetPxPyPzE(J22NoMassKtmp.momentum().x(), J22NoMassKtmp.momentum().y(), J22NoMassKtmp.momentum().z(), psi_vFit1->currentState().mass());
+                        J21NoMassMass = psi_vFit2->currentState().mass();
+                        J22NoMassMass = psi_vFit1->currentState().mass();
+                        J21NoMassMassE = Jpsi2masserr;
+                        J22NoMassMassE = Jpsi1masserr;
+                     }
+                     else
+                        goto match2;
 
                      // Mass Constraint Fit for J/psi
                      KinematicParticleVertexFitter kpvFitter;
@@ -613,6 +711,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      KinematicConstraint *jpsi_c1;
                      KinematicConstraint *jpsi_c2;
                      vector<RefCountedKinematicParticle> muonP12, muonP34;
+                     RefCountedKinematicParticle Jpsi1_part, Jpsi2_part;
+                     vector<RefCountedKinematicParticle> Chi_1;
                      muonP12.push_back(pmumuFactory.particle(muonTT1, muon_mass, chi1, ndf1, muon_sigma));
                      muonP12.push_back(pmumuFactory.particle(muonTT3, muon_mass, chi1, ndf1, muon_sigma));
                      muonP34.push_back(pmumuFactory.particle(muonTT2, muon_mass, chi2, ndf2, muon_sigma));
@@ -623,91 +723,159 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicTree Jpsi2noMCJJ = kpvFitter.fit(muonP34);
                      RefCountedKinematicTree Chi1_bTree;
                      RefCountedKinematicParticle MyChi1_part;
-                     jp1 = myJmass;
-                     jp_m_sigma1 = myJmasserr;
-                     jp2 = myJmass;
-                     jp_m_sigma2 = myJmasserr;
-                     jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
-                     jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
-                     RefCountedKinematicParticle Jpsi1_part, Jpsi2_part;
-                     vector<RefCountedKinematicParticle> Chi_1;
-                     try
+                     if (Y2pos == 1)
                      {
-                        Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
-                     }
-                     catch (VertexException const &x)
-                     {
-                        std::cout << "mu13 vertex exception with mass constrainted to J!" << std::endl;
-                     }
-                     try
-                     {
-                        Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
-                     }
-                     catch (VertexException const &x)
-                     {
-                        std::cout << "mu24 vertex exception with mass constrainted to J!" << std::endl;
-                     }
-
-                     if (Jpsi1->isEmpty() != true && Jpsi2->isEmpty() != true)
-                     {
-                        Jpsi1->movePointerToTheTop();
-                        Jpsi2->movePointerToTheTop();
-                        Jpsi1_part = Jpsi1->currentParticle();
-                        Jpsi2_part = Jpsi2->currentParticle();
-                        Chi_1.push_back(Jpsi1_part);
-                        Chi_1.push_back(Jpsi2_part);
-                        bool isagoodfit = true;
+                        jp1 = myYmass;
+                        jp_m_sigma1 = myYmasserr;
+                        jp2 = myJmass;
+                        jp_m_sigma2 = myJmasserr;
+                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
+                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
-                           Chi1_bTree = kpvFitter.fit(Chi_1);
+                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
+                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
-                           isagoodfit = false;
-                           std::cout << "mu13 and mu24 vertex exception with mu13 and mu24 constrained to JJ" << std::endl;
+                           std::cout << "mu12 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Chi1_bTree->isValid() && isagoodfit)
+                        if (Jpsi1->isEmpty() != true && Jpsi2->isValid() == true)
                         {
-                           Chi1_bTree->movePointerToTheTop();
-                           RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
-                           Chi1_bTree->movePointerToTheFirstChild();
-                           RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
-                           Chi1_bTree->movePointerToTheNextChild();
-                           RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
+                           Jpsi1->movePointerToTheTop();
+                           Jpsi2->movePointerToTheTop();
+                           Jpsi1_part = Jpsi1->currentParticle();
+                           Jpsi2_part = Jpsi2->currentParticle();
+                           Chi_1.push_back(Jpsi1_part);
+                           Chi_1.push_back(Jpsi2_part);
+                           bool isagoodfit = true;
+                           try
+                           {
+                              Chi1_bTree = kpvFitter.fit(Chi_1);
+                           }
+                           catch (VertexException const &x)
+                           {
+                              isagoodfit = false;
+                              cout << "mu12 and mu34 vertex exception with mu12 and mu34 constrained to JJ" << endl;
+                           }
+                           if (Chi1_bTree->isValid() && isagoodfit)
+                           {
+                              Chi1_bTree->movePointerToTheTop();
+                              RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
+                              Chi1_bTree->movePointerToTheFirstChild();
+                              RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
+                              Chi1_bTree->movePointerToTheNextChild();
+                              RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
-                           RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
-                           RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
-                           mu21Ktmp = mu1->currentState().kinematicParameters();
-                           mu22Ktmp = mu2->currentState().kinematicParameters();
-                           mu23Ktmp = mu3->currentState().kinematicParameters();
-                           mu24Ktmp = mu4->currentState().kinematicParameters();
-                           J21Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
-                           J22Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
-                           Chi1_bTree->movePointerToTheTop();
-                           MyChi1_part = Chi1_bTree->currentParticle();
-                           X1Ktmp = MyChi1_part->currentState().kinematicParameters();
-                           mu21P4tmp.SetPxPyPzE(mu21Ktmp.momentum().x(), mu21Ktmp.momentum().y(), mu21Ktmp.momentum().z(), mu1->currentState().mass());
-                           mu22P4tmp.SetPxPyPzE(mu22Ktmp.momentum().x(), mu22Ktmp.momentum().y(), mu22Ktmp.momentum().z(), mu2->currentState().mass());
-                           mu23P4tmp.SetPxPyPzE(mu23Ktmp.momentum().x(), mu23Ktmp.momentum().y(), mu23Ktmp.momentum().z(), mu3->currentState().mass());
-                           mu24P4tmp.SetPxPyPzE(mu24Ktmp.momentum().x(), mu24Ktmp.momentum().y(), mu24Ktmp.momentum().z(), mu4->currentState().mass());
-                           J21P4tmp.SetPxPyPzE(J21Ktmp.momentum().x(), J21Ktmp.momentum().y(), J21Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
-                           J22P4tmp.SetPxPyPzE(J22Ktmp.momentum().x(), J22Ktmp.momentum().y(), J22Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
-                           X2P4tmp.SetPxPyPzE(X2Ktmp.momentum().x(), X2Ktmp.momentum().y(), X2Ktmp.momentum().z(), MyChi1_part->currentState().mass());
-                           Muon21Mass = mu1->currentState().mass();
-                           Muon22Mass = mu2->currentState().mass();
-                           Muon23Mass = mu3->currentState().mass();
-                           Muon24Mass = mu4->currentState().mass();
-                           J21normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
-                           J22normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
-                           J21Mass = jpsi1In2JpsiVertex->currentState().mass();
-                           J22Mass = jpsi2In2JpsiVertex->currentState().mass();
-                           X2Mass = MyChi1_part->currentState().mass();
-                           X2normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                              RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
+                              mu21Ktmp = mu1->currentState().kinematicParameters();
+                              mu22Ktmp = mu2->currentState().kinematicParameters();
+                              mu23Ktmp = mu3->currentState().kinematicParameters();
+                              mu24Ktmp = mu4->currentState().kinematicParameters();
+                              J21Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
+                              J22Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
+                              Chi1_bTree->movePointerToTheTop();
+                              MyChi1_part = Chi1_bTree->currentParticle();
+                              X2Ktmp = MyChi1_part->currentState().kinematicParameters();
+                              mu21P4tmp.SetPxPyPzE(mu21Ktmp.momentum().x(), mu21Ktmp.momentum().y(), mu21Ktmp.momentum().z(), mu1->currentState().mass());
+                              mu22P4tmp.SetPxPyPzE(mu22Ktmp.momentum().x(), mu22Ktmp.momentum().y(), mu22Ktmp.momentum().z(), mu2->currentState().mass());
+                              mu23P4tmp.SetPxPyPzE(mu23Ktmp.momentum().x(), mu23Ktmp.momentum().y(), mu23Ktmp.momentum().z(), mu3->currentState().mass());
+                              mu24P4tmp.SetPxPyPzE(mu24Ktmp.momentum().x(), mu24Ktmp.momentum().y(), mu24Ktmp.momentum().z(), mu4->currentState().mass());
+                              J21P4tmp.SetPxPyPzE(J21Ktmp.momentum().x(), J21Ktmp.momentum().y(), J21Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
+                              J22P4tmp.SetPxPyPzE(J22Ktmp.momentum().x(), J22Ktmp.momentum().y(), J22Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
+                              X2P4tmp.SetPxPyPzE(X2Ktmp.momentum().x(), X2Ktmp.momentum().y(), X2Ktmp.momentum().z(), MyChi1_part->currentState().mass());
+                              Muon21Mass = mu1->currentState().mass();
+                              Muon22Mass = mu2->currentState().mass();
+                              Muon23Mass = mu3->currentState().mass();
+                              Muon24Mass = mu4->currentState().mass();
+                              J21normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
+                              J22normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
+                              J21Mass = jpsi1In2JpsiVertex->currentState().mass();
+                              J22Mass = jpsi2In2JpsiVertex->currentState().mass();
+                              X2Mass = MyChi1_part->currentState().mass();
+                              X2normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                           }
+                        }
+                     }
+                     else if (Y2pos == 2)
+                     {
+                        jp2 = myYmass;
+                        jp_m_sigma2 = myYmasserr;
+                        jp1 = myJmass;
+                        jp_m_sigma1 = myJmasserr;
+                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
+                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
+                        try
+                        {
+                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
+                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
+                        }
+                        catch (VertexException const &x)
+                        {
+                           std::cout << "mu34 vertex exception with mass constrainted to J!" << std::endl;
+                        }
+                        if (Jpsi2->isEmpty() != true && Jpsi1->isValid() == true)
+                        {
+                           Jpsi2->movePointerToTheTop();
+                           Jpsi1->movePointerToTheTop();
+                           Jpsi1_part = Jpsi2->currentParticle();
+                           Jpsi2_part = Jpsi1->currentParticle();
+                           Chi_1.push_back(Jpsi1_part);
+                           Chi_1.push_back(Jpsi2_part);
+                           bool isagoodfit = true;
+                           try
+                           {
+                              Chi1_bTree = kpvFitter.fit(Chi_1);
+                           }
+                           catch (VertexException const &x)
+                           {
+                              isagoodfit = false;
+                              cout << "mu12 and mu34 vertex exception with mu12 and mu34 constrained to JJ" << endl;
+                           }
+                           if (Chi1_bTree->isValid() && isagoodfit)
+                           {
+                              Chi1_bTree->movePointerToTheTop();
+                              RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
+                              Chi1_bTree->movePointerToTheFirstChild();
+                              RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
+                              Chi1_bTree->movePointerToTheNextChild();
+                              RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
+
+                              RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi2->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1->currentDecayVertex();
+                              mu21Ktmp = mu1->currentState().kinematicParameters();
+                              mu22Ktmp = mu2->currentState().kinematicParameters();
+                              mu23Ktmp = mu3->currentState().kinematicParameters();
+                              mu24Ktmp = mu4->currentState().kinematicParameters();
+                              J21Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
+                              J22Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
+                              Chi1_bTree->movePointerToTheTop();
+                              MyChi1_part = Chi1_bTree->currentParticle();
+                              X2Ktmp = MyChi1_part->currentState().kinematicParameters();
+                              mu21P4tmp.SetPxPyPzE(mu21Ktmp.momentum().x(), mu21Ktmp.momentum().y(), mu21Ktmp.momentum().z(), mu1->currentState().mass());
+                              mu22P4tmp.SetPxPyPzE(mu22Ktmp.momentum().x(), mu22Ktmp.momentum().y(), mu22Ktmp.momentum().z(), mu2->currentState().mass());
+                              mu23P4tmp.SetPxPyPzE(mu23Ktmp.momentum().x(), mu23Ktmp.momentum().y(), mu23Ktmp.momentum().z(), mu3->currentState().mass());
+                              mu24P4tmp.SetPxPyPzE(mu24Ktmp.momentum().x(), mu24Ktmp.momentum().y(), mu24Ktmp.momentum().z(), mu4->currentState().mass());
+                              J21P4tmp.SetPxPyPzE(J21Ktmp.momentum().x(), J21Ktmp.momentum().y(), J21Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
+                              J22P4tmp.SetPxPyPzE(J22Ktmp.momentum().x(), J22Ktmp.momentum().y(), J22Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
+                              X2P4tmp.SetPxPyPzE(X2Ktmp.momentum().x(), X2Ktmp.momentum().y(), X2Ktmp.momentum().z(), MyChi1_part->currentState().mass());
+                              Muon21Mass = mu1->currentState().mass();
+                              Muon22Mass = mu2->currentState().mass();
+                              Muon23Mass = mu3->currentState().mass();
+                              Muon24Mass = mu4->currentState().mass();
+                              J21normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
+                              J22normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
+                              J21Mass = jpsi1In2JpsiVertex->currentState().mass();
+                              J22Mass = jpsi2In2JpsiVertex->currentState().mass();
+                              X2Mass = MyChi1_part->currentState().mass();
+                              X2normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                           }
                         }
                      }
                   }
                }
-
+match2:
                // 14+23
                if ((iMuon1->charge() + iMuon4->charge()) == 0 && (iMuon2->charge() + iMuon3->charge()) == 0)
                {
@@ -732,7 +900,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   mu4Particles.push_back(pmumuFactory.particle(muonTT3, muon_mass, chi, ndf, muon_sigma));
 
                   if (dimuon1Particles.size() < 2 || dimuon2Particles.size() < 2 || mu4Particles.size() < 4)
-                     continue;
+                     goto match3;
 
                   KinematicParticleVertexFitter fitter1, fitter2, mu4fitter;
                   RefCountedKinematicTree psiVertexFitTree1, psiVertexFitTree2, XVertexFitTree;
@@ -755,9 +923,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicVertex X_vFit_vertex = XVertexFitTree->currentDecayVertex();
 
                      if (!psi_vFit1->currentState().isValid() || !psi_vFit2->currentState().isValid() || !X_vFit->currentState().isValid())
-                        continue;
+                        goto match3;
                      if (!psi_vFit_vertex1->vertexIsValid() || !psi_vFit_vertex2->vertexIsValid() || !X_vFit_vertex->vertexIsValid())
-                        continue;
+                        goto match3;
 
                      // KinematicParameters Jpara1 = psi_vFit1->currentState().kinematicParameters();
                      // KinematicParameters Jpara2 = psi_vFit2->currentState().kinematicParameters();
@@ -776,9 +944,39 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      double vProb2 = ChiSquaredProbability((double)(psi_vFit_vertex2->chiSquared()), (double)(psi_vFit_vertex2->degreesOfFreedom()));
                      // double XvProb = ChiSquaredProbability((double)(X_vFit_vertex->chiSquared()), (double)(X_vFit_vertex->degreesOfFreedom()));
                      if (vProb1 < JvPorbcut || vProb2 < JvPorbcut)
-                        continue;
+                        goto match3;
                      if (mu1->currentState().mass() <= MassMinCut || mu2->currentState().mass() <= MassMinCut || mu3->currentState().mass() <= MassMinCut || mu4->currentState().mass() <= MassMinCut || psi_vFit1->currentState().mass() <= MassMinCut || psi_vFit2->currentState().mass() <= MassMinCut || X_vFit->currentState().mass() <= MassMinCut)
-                        continue;
+                        goto match3;
+                     if (psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6) < 0 || psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6) < 0 || X_vFit->currentState().kinematicParametersError().matrix()(6, 6) < 0)
+                        goto match3;
+                     float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
+                     float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
+                     if (psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr))
+                     {
+                        Y3pos = 1;
+                        J31NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
+                        J32NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
+                        J31NoMassP4tmp.SetPxPyPzE(J31NoMassKtmp.momentum().x(), J31NoMassKtmp.momentum().y(), J31NoMassKtmp.momentum().z(), psi_vFit1->currentState().mass());
+                        J32NoMassP4tmp.SetPxPyPzE(J32NoMassKtmp.momentum().x(), J32NoMassKtmp.momentum().y(), J32NoMassKtmp.momentum().z(), psi_vFit2->currentState().mass());
+                        J31NoMassMass = psi_vFit1->currentState().mass();
+                        J32NoMassMass = psi_vFit2->currentState().mass();
+                        J31NoMassMassE = Jpsi1masserr;
+                        J32NoMassMassE = Jpsi2masserr;
+                     }
+                     if (psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr) && psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr) && vProb2 > vProb1)
+                     {
+                        Y3pos = 2;
+                        J31NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
+                        J32NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
+                        J31NoMassP4tmp.SetPxPyPzE(J31NoMassKtmp.momentum().x(), J31NoMassKtmp.momentum().y(), J31NoMassKtmp.momentum().z(), psi_vFit2->currentState().mass());
+                        J32NoMassP4tmp.SetPxPyPzE(J32NoMassKtmp.momentum().x(), J32NoMassKtmp.momentum().y(), J32NoMassKtmp.momentum().z(), psi_vFit1->currentState().mass());
+                        J31NoMassMass = psi_vFit2->currentState().mass();
+                        J32NoMassMass = psi_vFit1->currentState().mass();
+                        J31NoMassMassE = Jpsi2masserr;
+                        J32NoMassMassE = Jpsi1masserr;
+                     }
+                     else
+                        goto match3;
 
                      // Mass Constraint Fit for J/psi
                      KinematicParticleVertexFitter kpvFitter;
@@ -788,6 +986,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      KinematicConstraint *jpsi_c1;
                      KinematicConstraint *jpsi_c2;
                      vector<RefCountedKinematicParticle> muonP12, muonP34;
+                     RefCountedKinematicParticle Jpsi1_part, Jpsi2_part;
+                     vector<RefCountedKinematicParticle> Chi_1;
                      muonP12.push_back(pmumuFactory.particle(muonTT1, muon_mass, chi1, ndf1, muon_sigma));
                      muonP12.push_back(pmumuFactory.particle(muonTT4, muon_mass, chi1, ndf1, muon_sigma));
                      muonP34.push_back(pmumuFactory.particle(muonTT2, muon_mass, chi2, ndf2, muon_sigma));
@@ -798,93 +998,161 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicTree Jpsi2noMCJJ = kpvFitter.fit(muonP34);
                      RefCountedKinematicTree Chi1_bTree;
                      RefCountedKinematicParticle MyChi1_part;
-                     jp1 = myJmass;
-                     jp_m_sigma1 = myJmasserr;
-                     jp2 = myJmass;
-                     jp_m_sigma2 = myJmasserr;
-                     jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
-                     jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
-                     RefCountedKinematicParticle Jpsi1_part, Jpsi2_part;
-                     vector<RefCountedKinematicParticle> Chi_1;
-                     try
+                     if (Y3pos == 1)
                      {
-                        Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
-                     }
-                     catch (VertexException const &x)
-                     {
-                        std::cout << "mu14 vertex exception with mass constrainted to J!" << std::endl;
-                     }
-                     try
-                     {
-                        Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
-                     }
-                     catch (VertexException const &x)
-                     {
-                        std::cout << "mu23 vertex exception with mass constrainted to J!" << std::endl;
-                     }
-
-                     if (Jpsi1->isEmpty() != true && Jpsi2->isEmpty() != true)
-                     {
-                        Jpsi1->movePointerToTheTop();
-                        Jpsi2->movePointerToTheTop();
-                        Jpsi1_part = Jpsi1->currentParticle();
-                        Jpsi2_part = Jpsi2->currentParticle();
-                        Chi_1.push_back(Jpsi1_part);
-                        Chi_1.push_back(Jpsi2_part);
-                        bool isagoodfit = true;
+                        jp1 = myYmass;
+                        jp_m_sigma1 = myYmasserr;
+                        jp2 = myJmass;
+                        jp_m_sigma2 = myJmasserr;
+                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
+                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
-                           Chi1_bTree = kpvFitter.fit(Chi_1);
+                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
+                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
                         }
                         catch (VertexException const &x)
                         {
-                           isagoodfit = false;
-                           std::cout << "mu14 and mu23 vertex exception with mu14 and mu23 constrained to JJ" << std::endl;
+                           std::cout << "mu12 vertex exception with mass constrainted to J!" << std::endl;
                         }
-                        if (Chi1_bTree->isValid() && isagoodfit)
+                        if (Jpsi1->isEmpty() != true && Jpsi2->isValid() == true)
                         {
-                           Chi1_bTree->movePointerToTheTop();
-                           RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
-                           Chi1_bTree->movePointerToTheFirstChild();
-                           RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
-                           Chi1_bTree->movePointerToTheNextChild();
-                           RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
+                           Jpsi1->movePointerToTheTop();
+                           Jpsi2->movePointerToTheTop();
+                           Jpsi1_part = Jpsi1->currentParticle();
+                           Jpsi2_part = Jpsi2->currentParticle();
+                           Chi_1.push_back(Jpsi1_part);
+                           Chi_1.push_back(Jpsi2_part);
+                           bool isagoodfit = true;
+                           try
+                           {
+                              Chi1_bTree = kpvFitter.fit(Chi_1);
+                           }
+                           catch (VertexException const &x)
+                           {
+                              isagoodfit = false;
+                              cout << "mu12 and mu34 vertex exception with mu12 and mu34 constrained to JJ" << endl;
+                           }
+                           if (Chi1_bTree->isValid() && isagoodfit)
+                           {
+                              Chi1_bTree->movePointerToTheTop();
+                              RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
+                              Chi1_bTree->movePointerToTheFirstChild();
+                              RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
+                              Chi1_bTree->movePointerToTheNextChild();
+                              RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
 
-                           RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
-                           RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
-                           mu31Ktmp = mu1->currentState().kinematicParameters();
-                           mu32Ktmp = mu2->currentState().kinematicParameters();
-                           mu33Ktmp = mu3->currentState().kinematicParameters();
-                           mu34Ktmp = mu4->currentState().kinematicParameters();
-                           J31Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
-                           J32Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
-                           Chi1_bTree->movePointerToTheTop();
-                           MyChi1_part = Chi1_bTree->currentParticle();
-                           X3Ktmp = MyChi1_part->currentState().kinematicParameters();
-                           mu31P4tmp.SetPxPyPzE(mu31Ktmp.momentum().x(), mu31Ktmp.momentum().y(), mu31Ktmp.momentum().z(), mu1->currentState().mass());
-                           mu32P4tmp.SetPxPyPzE(mu32Ktmp.momentum().x(), mu32Ktmp.momentum().y(), mu32Ktmp.momentum().z(), mu2->currentState().mass());
-                           mu33P4tmp.SetPxPyPzE(mu33Ktmp.momentum().x(), mu33Ktmp.momentum().y(), mu33Ktmp.momentum().z(), mu3->currentState().mass());
-                           mu34P4tmp.SetPxPyPzE(mu34Ktmp.momentum().x(), mu34Ktmp.momentum().y(), mu34Ktmp.momentum().z(), mu4->currentState().mass());
-                           J31P4tmp.SetPxPyPzE(J31Ktmp.momentum().x(), J31Ktmp.momentum().y(), J31Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
-                           J32P4tmp.SetPxPyPzE(J32Ktmp.momentum().x(), J32Ktmp.momentum().y(), J32Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
-                           X3P4tmp.SetPxPyPzE(X3Ktmp.momentum().x(), X3Ktmp.momentum().y(), X3Ktmp.momentum().z(), MyChi1_part->currentState().mass());
-                           Muon31Mass = mu1->currentState().mass();
-                           Muon32Mass = mu2->currentState().mass();
-                           Muon33Mass = mu3->currentState().mass();
-                           Muon34Mass = mu4->currentState().mass();
-                           J31normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
-                           J32normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
-                           J31Mass = jpsi1In2JpsiVertex->currentState().mass();
-                           J32Mass = jpsi2In2JpsiVertex->currentState().mass();
-                           X3Mass = MyChi1_part->currentState().mass();
-                           X3normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                              RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi1->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi2->currentDecayVertex();
+                              mu31Ktmp = mu1->currentState().kinematicParameters();
+                              mu32Ktmp = mu2->currentState().kinematicParameters();
+                              mu33Ktmp = mu3->currentState().kinematicParameters();
+                              mu34Ktmp = mu4->currentState().kinematicParameters();
+                              J31Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
+                              J32Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
+                              Chi1_bTree->movePointerToTheTop();
+                              MyChi1_part = Chi1_bTree->currentParticle();
+                              X3Ktmp = MyChi1_part->currentState().kinematicParameters();
+                              mu31P4tmp.SetPxPyPzE(mu31Ktmp.momentum().x(), mu31Ktmp.momentum().y(), mu31Ktmp.momentum().z(), mu1->currentState().mass());
+                              mu32P4tmp.SetPxPyPzE(mu32Ktmp.momentum().x(), mu32Ktmp.momentum().y(), mu32Ktmp.momentum().z(), mu2->currentState().mass());
+                              mu33P4tmp.SetPxPyPzE(mu33Ktmp.momentum().x(), mu33Ktmp.momentum().y(), mu33Ktmp.momentum().z(), mu3->currentState().mass());
+                              mu34P4tmp.SetPxPyPzE(mu34Ktmp.momentum().x(), mu34Ktmp.momentum().y(), mu34Ktmp.momentum().z(), mu4->currentState().mass());
+                              J31P4tmp.SetPxPyPzE(J31Ktmp.momentum().x(), J31Ktmp.momentum().y(), J31Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
+                              J32P4tmp.SetPxPyPzE(J32Ktmp.momentum().x(), J32Ktmp.momentum().y(), J32Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
+                              X3P4tmp.SetPxPyPzE(X3Ktmp.momentum().x(), X3Ktmp.momentum().y(), X3Ktmp.momentum().z(), MyChi1_part->currentState().mass());
+                              Muon31Mass = mu1->currentState().mass();
+                              Muon32Mass = mu2->currentState().mass();
+                              Muon33Mass = mu3->currentState().mass();
+                              Muon34Mass = mu4->currentState().mass();
+                              J31normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
+                              J32normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
+                              J31Mass = jpsi1In2JpsiVertex->currentState().mass();
+                              J32Mass = jpsi2In2JpsiVertex->currentState().mass();
+                              X3Mass = MyChi1_part->currentState().mass();
+                              X3normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                           }
+                        }
+                     }
+                     else if (Y3pos == 2)
+                     {
+                        jp2 = myYmass;
+                        jp_m_sigma2 = myYmasserr;
+                        jp1 = myJmass;
+                        jp_m_sigma1 = myJmasserr;
+                        jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
+                        jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
+                        try
+                        {
+                           Jpsi2 = csFitter.fit(jpsi_c2, Jpsi2noMCJJ);
+                           Jpsi1 = csFitter.fit(jpsi_c1, Jpsi1noMCJJ);
+                        }
+                        catch (VertexException const &x)
+                        {
+                           std::cout << "mu34 vertex exception with mass constrainted to J!" << std::endl;
+                        }
+                        if (Jpsi2->isEmpty() != true && Jpsi1->isValid() == true)
+                        {
+                           Jpsi2->movePointerToTheTop();
+                           Jpsi1->movePointerToTheTop();
+                           Jpsi1_part = Jpsi2->currentParticle();
+                           Jpsi2_part = Jpsi1->currentParticle();
+                           Chi_1.push_back(Jpsi1_part);
+                           Chi_1.push_back(Jpsi2_part);
+                           bool isagoodfit = true;
+                           try
+                           {
+                              Chi1_bTree = kpvFitter.fit(Chi_1);
+                           }
+                           catch (VertexException const &x)
+                           {
+                              isagoodfit = false;
+                              cout << "mu12 and mu34 vertex exception with mu12 and mu34 constrained to JJ" << endl;
+                           }
+                           if (Chi1_bTree->isValid() && isagoodfit)
+                           {
+                              Chi1_bTree->movePointerToTheTop();
+                              RefCountedKinematicVertex myJpsi1Jpsi2Vertex = Chi1_bTree->currentDecayVertex();
+                              Chi1_bTree->movePointerToTheFirstChild();
+                              RefCountedKinematicParticle jpsi1In2JpsiVertex = Chi1_bTree->currentParticle();
+                              Chi1_bTree->movePointerToTheNextChild();
+                              RefCountedKinematicParticle jpsi2In2JpsiVertex = Chi1_bTree->currentParticle();
+
+                              RefCountedKinematicVertex myJpsi1DecayVtx = Jpsi2->currentDecayVertex();
+                              RefCountedKinematicVertex myJpsi2DecayVtx = Jpsi1->currentDecayVertex();
+                              mu31Ktmp = mu1->currentState().kinematicParameters();
+                              mu32Ktmp = mu2->currentState().kinematicParameters();
+                              mu33Ktmp = mu3->currentState().kinematicParameters();
+                              mu34Ktmp = mu4->currentState().kinematicParameters();
+                              J31Ktmp = jpsi1In2JpsiVertex->currentState().kinematicParameters();
+                              J32Ktmp = jpsi2In2JpsiVertex->currentState().kinematicParameters();
+                              Chi1_bTree->movePointerToTheTop();
+                              MyChi1_part = Chi1_bTree->currentParticle();
+                              X3Ktmp = MyChi1_part->currentState().kinematicParameters();
+                              mu31P4tmp.SetPxPyPzE(mu31Ktmp.momentum().x(), mu31Ktmp.momentum().y(), mu31Ktmp.momentum().z(), mu1->currentState().mass());
+                              mu32P4tmp.SetPxPyPzE(mu32Ktmp.momentum().x(), mu32Ktmp.momentum().y(), mu32Ktmp.momentum().z(), mu2->currentState().mass());
+                              mu33P4tmp.SetPxPyPzE(mu33Ktmp.momentum().x(), mu33Ktmp.momentum().y(), mu33Ktmp.momentum().z(), mu3->currentState().mass());
+                              mu34P4tmp.SetPxPyPzE(mu34Ktmp.momentum().x(), mu34Ktmp.momentum().y(), mu34Ktmp.momentum().z(), mu4->currentState().mass());
+                              J31P4tmp.SetPxPyPzE(J31Ktmp.momentum().x(), J31Ktmp.momentum().y(), J31Ktmp.momentum().z(), jpsi1In2JpsiVertex->currentState().mass());
+                              J32P4tmp.SetPxPyPzE(J32Ktmp.momentum().x(), J32Ktmp.momentum().y(), J32Ktmp.momentum().z(), jpsi2In2JpsiVertex->currentState().mass());
+                              X3P4tmp.SetPxPyPzE(X3Ktmp.momentum().x(), X3Ktmp.momentum().y(), X3Ktmp.momentum().z(), MyChi1_part->currentState().mass());
+                              Muon31Mass = mu1->currentState().mass();
+                              Muon32Mass = mu2->currentState().mass();
+                              Muon33Mass = mu3->currentState().mass();
+                              Muon34Mass = mu4->currentState().mass();
+                              J31normchi2 = myJpsi1DecayVtx->chiSquared() / myJpsi1DecayVtx->degreesOfFreedom();
+                              J32normchi2 = myJpsi2DecayVtx->chiSquared() / myJpsi2DecayVtx->degreesOfFreedom();
+                              J31Mass = jpsi1In2JpsiVertex->currentState().mass();
+                              J32Mass = jpsi2In2JpsiVertex->currentState().mass();
+                              X3Mass = MyChi1_part->currentState().mass();
+                              X3normchi2 = (double)myJpsi1Jpsi2Vertex->chiSquared() / (double)myJpsi1Jpsi2Vertex->degreesOfFreedom();
+                           }
                         }
                      }
                   }
                }
-
+match3:
                // Choose Best Combination to Save
-               if (X1normchi2 <= X2normchi2 && X1normchi2 <= X3normchi2 && X1normchi2 >= 0 && X1normchi2 < 900)
+               if (X1normchi2 <= X2normchi2 && X1normchi2 <= X3normchi2 && X1normchi2 >= 0 && X1normchi2 < 900 && npairs < 36)
                {
                   Muon1Charge_[npairs] = iMuon1->charge();
                   Muon2Charge_[npairs] = iMuon2->charge();
@@ -921,9 +1189,24 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   Xphi_[npairs] = X1P4tmp.Phi();
                   Xmass_[npairs] = X1Mass;
                   Xnormchi2_[npairs] = X1normchi2;
+
+                  J1NoMassnormchi2_[npairs] = J11NoMassnormchi2;
+                  J2NoMassnormchi2_[npairs] = J12NoMassnormchi2;
+                  J1NoMassPt_[npairs] = J11NoMassP4tmp.Pt();
+                  J2NoMassPt_[npairs] = J12NoMassP4tmp.Pt();
+                  J1NoMassEta_[npairs] = J11NoMassP4tmp.Eta();
+                  J2NoMassEta_[npairs] = J12NoMassP4tmp.Eta();
+                  J1NoMassPhi_[npairs] = J11NoMassP4tmp.Phi();
+                  J2NoMassPhi_[npairs] = J12NoMassP4tmp.Phi();
+                  J1NoMassMass_[npairs] = J11NoMassMass;
+                  J2NoMassMass_[npairs] = J12NoMassMass;
+                  J1NoMassMassE_[npairs] = J11NoMassMassE;
+                  J2NoMassMassE_[npairs] = J12NoMassMassE;
+                  type_[npairs] = 1;
+
                   npairs++;
                }
-               else if (X2normchi2 <= X1normchi2 && X2normchi2 <= X3normchi2 && X2normchi2 >= 0 && X2normchi2 < 900)
+               else if (X2normchi2 <= X1normchi2 && X2normchi2 <= X3normchi2 && X2normchi2 >= 0 && X2normchi2 < 900 && npairs < 36)
                {
                   Muon1Charge_[npairs] = iMuon1->charge();
                   Muon2Charge_[npairs] = iMuon2->charge();
@@ -960,9 +1243,24 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   Xphi_[npairs] = X2P4tmp.Phi();
                   Xmass_[npairs] = X2Mass;
                   Xnormchi2_[npairs] = X2normchi2;
+
+                  J1NoMassnormchi2_[npairs] = J21NoMassnormchi2;
+                  J2NoMassnormchi2_[npairs] = J22NoMassnormchi2;
+                  J1NoMassPt_[npairs] = J21NoMassP4tmp.Pt();
+                  J2NoMassPt_[npairs] = J22NoMassP4tmp.Pt();
+                  J1NoMassEta_[npairs] = J21NoMassP4tmp.Eta();
+                  J2NoMassEta_[npairs] = J22NoMassP4tmp.Eta();
+                  J1NoMassPhi_[npairs] = J21NoMassP4tmp.Phi();
+                  J2NoMassPhi_[npairs] = J22NoMassP4tmp.Phi();
+                  J1NoMassMass_[npairs] = J21NoMassMass;
+                  J2NoMassMass_[npairs] = J22NoMassMass;
+                  J1NoMassMassE_[npairs] = J21NoMassMassE;
+                  J2NoMassMassE_[npairs] = J22NoMassMassE;
+                  type_[npairs] = 2;
+
                   npairs++;
                }
-               else if (X3normchi2 <= X1normchi2 && X3normchi2 <= X2normchi2 && X3normchi2 >= 0 && X3normchi2 < 900)
+               else if (X3normchi2 <= X1normchi2 && X3normchi2 <= X2normchi2 && X3normchi2 >= 0 && X3normchi2 < 900 && npairs < 36)
                {
                   Muon1Charge_[npairs] = iMuon1->charge();
                   Muon2Charge_[npairs] = iMuon2->charge();
@@ -999,6 +1297,21 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   Xphi_[npairs] = X3P4tmp.Phi();
                   Xmass_[npairs] = X3Mass;
                   Xnormchi2_[npairs] = X3normchi2;
+
+                  J1NoMassnormchi2_[npairs] = J31NoMassnormchi2;
+                  J2NoMassnormchi2_[npairs] = J32NoMassnormchi2;
+                  J1NoMassPt_[npairs] = J31NoMassP4tmp.Pt();
+                  J2NoMassPt_[npairs] = J32NoMassP4tmp.Pt();
+                  J1NoMassEta_[npairs] = J31NoMassP4tmp.Eta();
+                  J2NoMassEta_[npairs] = J32NoMassP4tmp.Eta();
+                  J1NoMassPhi_[npairs] = J31NoMassP4tmp.Phi();
+                  J2NoMassPhi_[npairs] = J32NoMassP4tmp.Phi();
+                  J1NoMassMass_[npairs] = J31NoMassMass;
+                  J2NoMassMass_[npairs] = J32NoMassMass;
+                  J1NoMassMassE_[npairs] = J31NoMassMassE;
+                  J2NoMassMassE_[npairs] = J32NoMassMassE;
+                  type_[npairs] = 3;
+
                   npairs++;
                }
             }
@@ -1009,153 +1322,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
    if (npairs > 0)
    {
       X4muTree->Fill();
-      //std::cout << "npairs: " << npairs << " XMass: " << Xmass_[0] << " J1Mass: " << J1Mass_[0] << " J2Mass: " << J2Mass_[0] << " Muon1Mass: " << Muon1Mass_[0] << " Muon2Mass: " << Muon2Mass_[0] << " Muon3Mass: " << Muon3Mass_[0] << " Muon4Mass: " << Muon4Mass_[0] << std::endl;
+      // std::cout << "npairs: " << npairs << " XMass: " << Xmass_[0] << " J1Mass: " << J1Mass_[0] << " J2Mass: " << J2Mass_[0] << " Muon1Mass: " << Muon1Mass_[0] << " Muon2Mass: " << Muon2Mass_[0] << " Muon3Mass: " << Muon3Mass_[0] << " Muon4Mass: " << Muon4Mass_[0] << std::endl;
    }
-
-   /*    std::unique_ptr<edm::ValueMap<int>> Muon1Charge(new edm::ValueMap<int>());
-      std::unique_ptr<edm::ValueMap<int>> Muon2Charge(new edm::ValueMap<int>());
-      std::unique_ptr<edm::ValueMap<int>> Muon3Charge(new edm::ValueMap<int>());
-      std::unique_ptr<edm::ValueMap<int>> Muon4Charge(new edm::ValueMap<int>());
-      std::unique_ptr<edm::ValueMap<float>> Muon1Pt(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon2Pt(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon3Pt(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon4Pt(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon1Eta(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon2Eta(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon3Eta(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon4Eta(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon1Phi(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon2Phi(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon3Phi(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Muon4Phi(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J1normchi2(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J2normchi2(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J1Pt(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J2Pt(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J1Eta(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J2Eta(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J1Phi(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J2Phi(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J1Mass(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> J2Mass(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<float>> Xmass(new edm::ValueMap<float>());
-      std::unique_ptr<edm::ValueMap<int>> Xnormchi2(new edm::ValueMap<int>());
-
-      edm::ValueMap<int>::Filler filler_Muon1Charge(*Muon1Charge);
-      edm::ValueMap<int>::Filler filler_Muon2Charge(*Muon2Charge);
-      edm::ValueMap<int>::Filler filler_Muon3Charge(*Muon3Charge);
-      edm::ValueMap<int>::Filler filler_Muon4Charge(*Muon4Charge);
-      edm::ValueMap<float>::Filler filler_Muon1Pt(*Muon1Pt);
-      edm::ValueMap<float>::Filler filler_Muon2Pt(*Muon2Pt);
-      edm::ValueMap<float>::Filler filler_Muon3Pt(*Muon3Pt);
-      edm::ValueMap<float>::Filler filler_Muon4Pt(*Muon4Pt);
-      edm::ValueMap<float>::Filler filler_Muon1Eta(*Muon1Eta);
-      edm::ValueMap<float>::Filler filler_Muon2Eta(*Muon2Eta);
-      edm::ValueMap<float>::Filler filler_Muon3Eta(*Muon3Eta);
-      edm::ValueMap<float>::Filler filler_Muon4Eta(*Muon4Eta);
-      edm::ValueMap<float>::Filler filler_Muon1Phi(*Muon1Phi);
-      edm::ValueMap<float>::Filler filler_Muon2Phi(*Muon2Phi);
-      edm::ValueMap<float>::Filler filler_Muon3Phi(*Muon3Phi);
-      edm::ValueMap<float>::Filler filler_Muon4Phi(*Muon4Phi);
-      edm::ValueMap<float>::Filler filler_J1normchi2(*J1normchi2);
-      edm::ValueMap<float>::Filler filler_J2normchi2(*J2normchi2);
-      edm::ValueMap<float>::Filler filler_J1Pt(*J1Pt);
-      edm::ValueMap<float>::Filler filler_J2Pt(*J2Pt);
-      edm::ValueMap<float>::Filler filler_J1Eta(*J1Eta);
-      edm::ValueMap<float>::Filler filler_J2Eta(*J2Eta);
-      edm::ValueMap<float>::Filler filler_J1Phi(*J1Phi);
-      edm::ValueMap<float>::Filler filler_J2Phi(*J2Phi);
-      edm::ValueMap<float>::Filler filler_J1Mass(*J1Mass);
-      edm::ValueMap<float>::Filler filler_J2Mass(*J2Mass);
-      edm::ValueMap<float>::Filler filler_Xmass(*Xmass);
-      edm::ValueMap<int>::Filler filler_Xnormchi2(*Xnormchi2);
-
-      filler_Muon1Charge.insert(oh, Muon1Charge_.begin(), Muon1Charge_.end());
-      filler_Muon2Charge.insert(oh, Muon2Charge_.begin(), Muon2Charge_.end());
-      filler_Muon3Charge.insert(oh, Muon3Charge_.begin(), Muon3Charge_.end());
-      filler_Muon4Charge.insert(oh, Muon4Charge_.begin(), Muon4Charge_.end());
-      filler_Muon1Pt.insert(oh, Muon1Pt_.begin(), Muon1Pt_.end());
-      filler_Muon2Pt.insert(oh, Muon2Pt_.begin(), Muon2Pt_.end());
-      filler_Muon3Pt.insert(oh, Muon3Pt_.begin(), Muon3Pt_.end());
-      filler_Muon4Pt.insert(oh, Muon4Pt_.begin(), Muon4Pt_.end());
-      filler_Muon1Eta.insert(oh, Muon1Eta_.begin(), Muon1Eta_.end());
-      filler_Muon2Eta.insert(oh, Muon2Eta_.begin(), Muon2Eta_.end());
-      filler_Muon3Eta.insert(oh, Muon3Eta_.begin(), Muon3Eta_.end());
-      filler_Muon4Eta.insert(oh, Muon4Eta_.begin(), Muon4Eta_.end());
-      filler_Muon1Phi.insert(oh, Muon1Phi_.begin(), Muon1Phi_.end());
-      filler_Muon2Phi.insert(oh, Muon2Phi_.begin(), Muon2Phi_.end());
-      filler_Muon3Phi.insert(oh, Muon3Phi_.begin(), Muon3Phi_.end());
-      filler_Muon4Phi.insert(oh, Muon4Phi_.begin(), Muon4Phi_.end());
-      filler_J1normchi2.insert(oh, J1normchi2_.begin(), J1normchi2_.end());
-      filler_J2normchi2.insert(oh, J2normchi2_.begin(), J2normchi2_.end());
-      filler_J1Pt.insert(oh, J1Pt_.begin(), J1Pt_.end());
-      filler_J2Pt.insert(oh, J2Pt_.begin(), J2Pt_.end());
-      filler_J1Eta.insert(oh, J1Eta_.begin(), J1Eta_.end());
-      filler_J2Eta.insert(oh, J2Eta_.begin(), J2Eta_.end());
-      filler_J1Phi.insert(oh, J1Phi_.begin(), J1Phi_.end());
-      filler_J2Phi.insert(oh, J2Phi_.begin(), J2Phi_.end());
-      filler_J1Mass.insert(oh, J1Mass_.begin(), J1Mass_.end());
-      filler_J2Mass.insert(oh, J2Mass_.begin(), J2Mass_.end());
-      filler_Xmass.insert(oh, Xmass_.begin(), Xmass_.end());
-      filler_Xnormchi2.insert(oh, Xnormchi2_.begin(), Xnormchi2_.end());
-
-      filler_Muon1Charge.fill();
-      filler_Muon2Charge.fill();
-      filler_Muon3Charge.fill();
-      filler_Muon4Charge.fill();
-      filler_Muon1Pt.fill();
-      filler_Muon2Pt.fill();
-      filler_Muon3Pt.fill();
-      filler_Muon4Pt.fill();
-      filler_Muon1Eta.fill();
-      filler_Muon2Eta.fill();
-      filler_Muon3Eta.fill();
-      filler_Muon4Eta.fill();
-      filler_Muon1Phi.fill();
-      filler_Muon2Phi.fill();
-      filler_Muon3Phi.fill();
-      filler_Muon4Phi.fill();
-      filler_J1normchi2.fill();
-      filler_J2normchi2.fill();
-      filler_J1Pt.fill();
-      filler_J2Pt.fill();
-      filler_J1Eta.fill();
-      filler_J2Eta.fill();
-      filler_J1Phi.fill();
-      filler_J2Phi.fill();
-      filler_J1Mass.fill();
-      filler_J2Mass.fill();
-      filler_Xmass.fill();
-      filler_Xnormchi2.fill();
-
-      iEvent.put(std::move(Muon1Charge), "Muon1Charge");
-      iEvent.put(std::move(Muon2Charge), "Muon2Charge");
-      iEvent.put(std::move(Muon3Charge), "Muon3Charge");
-      iEvent.put(std::move(Muon4Charge), "Muon4Charge");
-      iEvent.put(std::move(Muon1Pt), "Muon1Pt");
-      iEvent.put(std::move(Muon2Pt), "Muon2Pt");
-      iEvent.put(std::move(Muon3Pt), "Muon3Pt");
-      iEvent.put(std::move(Muon4Pt), "Muon4Pt");
-      iEvent.put(std::move(Muon1Eta), "Muon1Eta");
-      iEvent.put(std::move(Muon2Eta), "Muon2Eta");
-      iEvent.put(std::move(Muon3Eta), "Muon3Eta");
-      iEvent.put(std::move(Muon4Eta), "Muon4Eta");
-      iEvent.put(std::move(Muon1Phi), "Muon1Phi");
-      iEvent.put(std::move(Muon2Phi), "Muon2Phi");
-      iEvent.put(std::move(Muon3Phi), "Muon3Phi");
-      iEvent.put(std::move(Muon4Phi), "Muon4Phi");
-      iEvent.put(std::move(J1normchi2), "J1normchi2");
-      iEvent.put(std::move(J2normchi2), "J2normchi2");
-      iEvent.put(std::move(J1Pt), "J1Pt");
-      iEvent.put(std::move(J2Pt), "J2Pt");
-      iEvent.put(std::move(J1Eta), "J1Eta");
-      iEvent.put(std::move(J2Eta), "J2Eta");
-      iEvent.put(std::move(J1Phi), "J1Phi");
-      iEvent.put(std::move(J2Phi), "J2Phi");
-      iEvent.put(std::move(J1Mass), "J1Mass");
-      iEvent.put(std::move(J2Mass), "J2Mass");
-      iEvent.put(std::move(Xmass), "Xmass");
-      iEvent.put(std::move(Xnormchi2), "Xnormchi2"); */
    npairs = 0;
    clearVars();
 }
@@ -1199,6 +1367,20 @@ void X4muSecondaryVertexProducer::clearVars()
       Xphi_[i] = 0;
       Xmass_[i] = 0;
       Xnormchi2_[i] = 0;
+
+      J1NoMassnormchi2_[i] = 0;
+      J2NoMassnormchi2_[i] = 0;
+      J1NoMassPt_[i] = 0;
+      J2NoMassPt_[i] = 0;
+      J1NoMassEta_[i] = 0;
+      J2NoMassEta_[i] = 0;
+      J1NoMassPhi_[i] = 0;
+      J2NoMassPhi_[i] = 0;
+      J1NoMassMass_[i] = 0;
+      J2NoMassMass_[i] = 0;
+      J1NoMassMassE_[i] = 0;
+      J2NoMassMassE_[i] = 0;
+      type_[i] = 0;
    }
 }
 
@@ -1207,7 +1389,10 @@ void X4muSecondaryVertexProducer::fillDescriptions(edm::ConfigurationDescription
    edm::ParameterSetDescription desc;
    desc.add<edm::InputTag>("recoMuon", edm::InputTag("recoMuon"));
    desc.add<edm::InputTag>("recoTrack", edm::InputTag("recoTrack"));
-
+   desc.add<double>("MesonMassBig");
+   desc.add<double>("MesonMassBigErr");
+   desc.add<double>("MesonMassSmall");
+   desc.add<double>("MesonMassSmallErr");
    descriptions.add("X4muSecondaryVertexProducer", desc);
 }
 

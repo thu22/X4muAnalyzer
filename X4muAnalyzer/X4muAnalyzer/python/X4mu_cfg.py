@@ -6,7 +6,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 
 process = cms.Process('NANO', Run3_2024)
 #process = cms.Process("X4muAnalyzer")
-ouput_filename = 'file:X4mu_test_v2.root'
+ouput_filename = 'X4mu_scouting.root'
 
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
@@ -21,8 +21,8 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 
 process.GlobalTag = GlobalTag(process.GlobalTag, '140X_dataRun3_Prompt_v4', '')
 
-process.MessageLogger.cerr.FwkSummary.reportEvery = 100000
-process.MessageLogger.cerr.FwkReport.reportEvery = 100000
+process.MessageLogger.cerr.FwkSummary.reportEvery = 100000000
+process.MessageLogger.cerr.FwkReport.reportEvery = 100000000
 
 process.maxEvents = cms.untracked.PSet( 
     input = cms.untracked.int32(-1) 
@@ -69,17 +69,18 @@ process.options = cms.untracked.PSet(
     printDependencies = cms.untracked.bool(False),
     sizeOfStackForThreadsInKB = cms.optional.untracked.uint32,
     throwIfIllegalParameter = cms.untracked.bool(True),
-    wantSummary = cms.untracked.bool(True),
+    wantSummary = cms.untracked.bool(False),
 )
 
 process.X4muConverter = cms.EDProducer("X4muScoutingToRecoMuonProducer",
-    scoutingMuon = cms.InputTag("hltScoutingMuonPackerVtx"),  #Todo: Add NoVtx Muons#
-    scoutingTrack = cms.InputTag("hltScoutingTrackPacker")
+    scoutingMuon = cms.InputTag("hltScoutingMuonPackerVtx"),
+    scoutingMuonNoVtx = cms.InputTag("hltScoutingMuonPackerNoVtx"),
+    scoutingTrack = cms.InputTag("hltScoutingTrackPacker"),
 )
 
 process.X4muFilter = cms.EDFilter('CandViewCountFilter',
     src       = cms.InputTag("X4muConverter", "recoMuons"),
-    minNumber = cms.uint32(4)  # 4
+    minNumber = cms.uint32(4),  # 4
 )
 
 process.X4muVertexFinder = cms.EDProducer("X4muSecondaryVertexProducer",
