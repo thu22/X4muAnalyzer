@@ -21,11 +21,11 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 
 process.GlobalTag = GlobalTag(process.GlobalTag, '140X_dataRun3_Prompt_v4', '')
 
-process.MessageLogger.cerr.FwkSummary.reportEvery = 100000000
-process.MessageLogger.cerr.FwkReport.reportEvery = 100000000
+process.MessageLogger.cerr.FwkSummary.reportEvery = 1000000000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000000000
 
 process.maxEvents = cms.untracked.PSet( 
-    input = cms.untracked.int32(-1) #-1 
+    input = cms.untracked.int32(-1) # -1 
 )
 
 process.source = cms.Source("PoolSource",
@@ -86,6 +86,16 @@ process.X4muFilter = cms.EDFilter('CandViewCountFilter',
 process.X4muVertexFinder = cms.EDProducer("X4muSecondaryVertexProducer",
     recoMuon = cms.InputTag("X4muConverter", "recoMuons"),
     recoTrack = cms.InputTag("X4muConverter", "recoTracks"),
+    MesonMass = cms.double(9.4604), # Upsilon 9.4604
+    MesonMassErr = cms.double(0.0001), # Upsilon 0.0001
+    ExMesonMass = cms.double(3.0969), # J/Psi 3.0969
+    TriggerResults  = cms.InputTag("TriggerResults", "", "HLT"),
+    FilterNames     = cms.vstring(
+    'DST_PFScouting_DoubleMuon',       #  1=        1
+    'DST_PFScouting_SingleMuon',       #  2=        2
+    'DST_PFScouting_DatasetMuon',      #  3=        4
+    ),
+    doIso = cms.bool(True),
 )
 
 process.p = cms.Path(process.X4muConverter*process.X4muFilter*process.X4muVertexFinder)

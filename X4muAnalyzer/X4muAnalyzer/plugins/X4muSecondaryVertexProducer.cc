@@ -11,12 +11,32 @@
 #include "TTree.h"
 #include "TLorentzVector.h"
 
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "DataFormats/HLTReco/interface/TriggerObject.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "DataFormats/HLTReco/interface/TriggerEventWithRefs.h"
+#include "DataFormats/PatCandidates/interface/TriggerEvent.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TLorentzVector.h"
+#include "TTree.h"
+#include "TH2F.h"
 
 #include "FWCore/Utilities/interface/EDPutToken.h"
 #include "DataFormats/Common/interface/ValueMap.h"
@@ -31,6 +51,28 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
+#include <DataFormats/MuonReco/interface/MuonFwd.h>
+#include <DataFormats/MuonReco/interface/Muon.h>
+#include <DataFormats/TrackReco/interface/TrackFwd.h>
+#include <DataFormats/TrackReco/interface/Track.h>
+#include <DataFormats/Common/interface/View.h>
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
+#include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TLorentzVector.h"
+#include "TTree.h"
 
 #include "RecoVertex/KinematicFitPrimitives/interface/MultiTrackKinematicConstraint.h"
 #include "RecoVertex/KinematicFit/interface/KinematicConstrainedVertexFitter.h"
@@ -65,6 +107,26 @@
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/CLHEP/interface/AlgebraicObjects.h"
 #include "DataFormats/CLHEP/interface/Migration.h"
+#include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "TrackingTools/TransientTrack/interface/TrackTransientTrack.h"
+#include "MagneticField/Engine/interface/MagneticField.h"            
+#include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
+#include "RecoVertex/KinematicFit/interface/KinematicParticleVertexFitter.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
+#include "RecoVertex/KinematicFit/interface/MassKinematicConstraint.h"
+#include "RecoVertex/KinematicFit/interface/KinematicParticleFitter.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/MultiTrackKinematicConstraint.h"
+#include "RecoVertex/KinematicFit/interface/KinematicConstrainedVertexFitter.h"
+#include "RecoVertex/KinematicFit/interface/TwoTrackMassKinematicConstraint.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticle.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/RefCountedKinematicParticle.h"
+#include "RecoVertex/KinematicFitPrimitives/interface/TransientTrackKinematicParticle.h"
 #include "MagneticField/Records/interface/IdealMagneticFieldRecord.h"
 #include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
 #include "RecoVertex/KinematicFit/interface/KinematicParticleVertexFitter.h"
@@ -83,6 +145,12 @@
 #include "RecoVertex/VertexTools/interface/VertexDistanceXY.h"
 #include "Geometry/Records/interface/TrackerDigiGeometryRecord.h"
 
+using namespace std;
+using namespace edm;
+using namespace reco;
+using namespace muon;
+using namespace trigger;
+
 class X4muSecondaryVertexProducer : public edm::stream::EDProducer<>
 {
 public:
@@ -97,16 +165,28 @@ public:
    void clearVars();
 
 private:
+   UInt_t getTriggerBits(const edm::Event &);
+   /* bool TriggerMatch(pat::CompositeCandidate dimuonCand);
+   void analyzeTrigger(edm::Handle<edm::TriggerResults> &hltR, edm::Handle<trigger::TriggerEvent> &hltE, const std::string& triggerName); 
+   bool triggerDecision(edm::Handle<edm::TriggerResults> &hltR, int iTrigger); */
    const edm::EDGetTokenT<std::vector<reco::Muon>> input_recomuon_token_;
    const edm::EDGetTokenT<std::vector<reco::Track>> input_recoTrack_token_;
+   edm::EDGetTokenT<edm::TriggerResults> triggerresults_;
+   std::vector<std::string> FilterNames_;
+   const double input_MesonMass_c;
+   const double input_MesonMassErr_c;
+   const double input_ExMesonMass_c;
+   const bool doIso_c;
    const edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldToken_; // 声明 magneticFieldToken_
-
+   
    TTree *X4muTree;
    std::string file_name;
 
-   /* UInt_t    run;
+   UInt_t    run;
    ULong64_t event;
-   UInt_t    lumiblock; */
+   UInt_t    lumiblock;
+
+   UInt_t    trigger;
 
    int Muon1Charge_[36];
    int Muon2Charge_[36];
@@ -155,39 +235,7 @@ private:
    float Xphi_[36];
    float Xmass_[36];
    float Xnormchi2_[36];
-   /* std::vector<int> Muon3Charge_;
-   std::vector<int> Muon4Charge_;
-   std::vector<float> Muon1Pt_;
-   std::vector<float> Muon2Pt_;
-   std::vector<float> Muon3Pt_;
-   std::vector<float> Muon4Pt_;
-   std::vector<float> Muon1Eta_;
-   std::vector<float> Muon2Eta_;
-   std::vector<float> Muon3Eta_;
-   std::vector<float> Muon4Eta_;
-   std::vector<float> Muon1Phi_;
-   std::vector<float> Muon2Phi_;
-   std::vector<float> Muon3Phi_;
-   std::vector<float> Muon4Phi_;
-   std::vector<float> Muon1Mass_;
-   std::vector<float> Muon2Mass_;
-   std::vector<float> Muon3Mass_;
-   std::vector<float> Muon4Mass_;
-   std::vector<float> J1normchi2_;
-   std::vector<float> J2normchi2_;
-   std::vector<float> J1Pt_;
-   std::vector<float> J2Pt_;
-   std::vector<float> J1Eta_;
-   std::vector<float> J2Eta_;
-   std::vector<float> J1Phi_;
-   std::vector<float> J2Phi_;
-   std::vector<float> J1Mass_;
-   std::vector<float> J2Mass_;
-   std::vector<float> XpT_;
-   std::vector<float> Xeta_;
-   std::vector<float> Xphi_;
-   std::vector<float> Xmass_;
-   std::vector<float> Xnormchi2_; */
+   int type_[36];
 };
 
 //
@@ -196,11 +244,21 @@ private:
 X4muSecondaryVertexProducer::X4muSecondaryVertexProducer(edm::ParameterSet const &iConfig)
     : input_recomuon_token_(consumes(iConfig.getParameter<edm::InputTag>("recoMuon"))),
       input_recoTrack_token_(consumes(iConfig.getParameter<edm::InputTag>("recoTrack"))),
+      triggerresults_(consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("TriggerResults"))),
+      FilterNames_(iConfig.getParameter<std::vector<std::string>>("FilterNames")),
+      input_MesonMass_c(iConfig.getParameter<double>("MesonMass")),
+      input_MesonMassErr_c(iConfig.getParameter<double>("MesonMassErr")),
+      input_ExMesonMass_c(iConfig.getParameter<double>("ExMesonMass")),
+      doIso_c(iConfig.getParameter<bool>("doIso")),
       magneticFieldToken_(esConsumes<MagneticField, IdealMagneticFieldRecord>())
 {
    edm::Service<TFileService> fs;
    X4muTree = fs->make<TTree>("X4muTree", "Tree of X4muTree");
 
+   X4muTree->Branch("run", &run, "run/i");
+   X4muTree->Branch("event", &event, "event/i");
+   X4muTree->Branch("lumiblock", &lumiblock, "lumiblock/i");
+   X4muTree->Branch("trigger", &trigger, "trigger/i");
    X4muTree->Branch("Muon1Charge", Muon1Charge_);
    X4muTree->Branch("Muon2Charge", Muon2Charge_);
    X4muTree->Branch("Muon3Charge", Muon3Charge_);
@@ -248,43 +306,7 @@ X4muSecondaryVertexProducer::X4muSecondaryVertexProducer(edm::ParameterSet const
    X4muTree->Branch("Xphi", Xphi_);
    X4muTree->Branch("Xmass", Xmass_);
    X4muTree->Branch("Xnormchi2", Xnormchi2_);
-
-   // register products
-   /* produces<edm::ValueMap<int>>("Muon1Charge");
-   produces<edm::ValueMap<int>>("Muon2Charge");
-   produces<edm::ValueMap<int>>("Muon3Charge");
-   produces<edm::ValueMap<int>>("Muon4Charge");
-   produces<edm::ValueMap<float>>("Muon1Pt");
-   produces<edm::ValueMap<float>>("Muon2Pt");
-   produces<edm::ValueMap<float>>("Muon3Pt");
-   produces<edm::ValueMap<float>>("Muon4Pt");
-   produces<edm::ValueMap<float>>("Muon1Eta");
-   produces<edm::ValueMap<float>>("Muon2Eta");
-   produces<edm::ValueMap<float>>("Muon3Eta");
-   produces<edm::ValueMap<float>>("Muon4Eta");
-   produces<edm::ValueMap<float>>("Muon1Phi");
-   produces<edm::ValueMap<float>>("Muon2Phi");
-   produces<edm::ValueMap<float>>("Muon3Phi");
-   produces<edm::ValueMap<float>>("Muon4Phi");
-   produces<edm::ValueMap<float>>("Muon1Mass");
-   produces<edm::ValueMap<float>>("Muon2Mass");
-   produces<edm::ValueMap<float>>("Muon3Mass");
-   produces<edm::ValueMap<float>>("Muon4Mass");
-   produces<edm::ValueMap<float>>("J1normchi2");
-   produces<edm::ValueMap<float>>("J2normchi2");
-   produces<edm::ValueMap<float>>("J1Pt");
-   produces<edm::ValueMap<float>>("J2Pt");
-   produces<edm::ValueMap<float>>("J1Eta");
-   produces<edm::ValueMap<float>>("J2Eta");
-   produces<edm::ValueMap<float>>("J1Phi");
-   produces<edm::ValueMap<float>>("J2Phi");
-   produces<edm::ValueMap<float>>("J1Mass");
-   produces<edm::ValueMap<float>>("J2Mass");
-   produces<edm::ValueMap<float>>("XpT");
-   produces<edm::ValueMap<float>>("Xeta");
-   produces<edm::ValueMap<float>>("Xphi");
-   produces<edm::ValueMap<float>>("Xmass");
-   produces<edm::ValueMap<int>>("Xnormchi2"); */
+   X4muTree->Branch("type", type_);
 }
 
 X4muSecondaryVertexProducer::~X4muSecondaryVertexProducer() = default;
@@ -297,31 +319,31 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
    using namespace reco;
 
    const MagneticField &bFieldHandle = iSetup.getData(magneticFieldToken_);
+   const auto myYmass = input_MesonMass_c;
+   const auto myJmass = input_ExMesonMass_c;
+   const auto myYmasserr = input_MesonMassErr_c;
 
    Handle<std::vector<reco::Muon>> muonHandle;
    Handle<std::vector<reco::Track>> trackHandle;
    iEvent.getByToken(input_recomuon_token_, muonHandle);
    iEvent.getByToken(input_recoTrack_token_, trackHandle);
+   run       = iEvent.id().run();
+   event     = iEvent.id().event();
+   lumiblock = iEvent.id().luminosityBlock(); 
+   trigger = getTriggerBits(iEvent);
+
+   const auto doIso = doIso_c;
 
    double myMumass = 0.1056583755;
-   double myJmass = 3.0969;
+   // double myYmass = 9.4604;
+   // double myJmass = 3.0969;
    double myMumasserr = myMumass * 1e-6;
-   double myJmasserr = 0.00004;
+   // double myYmasserr = 0.0001;
+   // double myJmasserr = 0.00004;
    double JvPorbcut = 0.0001;
+   double ProbJcut = 0.03;
    double MassMinCut = 0.001;
    long npairs = 0;
-
-   // Store all possible 4 muons with 12 pair + 34 pair
-   /* vector<TLorentzVector> *mu1P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *mu2P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *mu3P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *mu4P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *J1P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *J2P4 = new vector<TLorentzVector>;
-   vector<TLorentzVector> *XP4 = new vector<TLorentzVector>;
-   vector<float> *Dimuon1vProb = new vector<float>;
-   vector<float> *Dimuon2vProb = new vector<float>;
-   vector<float> *JJvProb = new vector<float>; */
 
    if (!trackHandle.isValid())
    {
@@ -344,7 +366,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
          {
             for (std::vector<reco::Track>::const_iterator iMuon4 = iMuon3 + 1; iMuon4 != trackHandle->end(); ++iMuon4)
             {
-               // float mu4pairChi[3] = {}; //[0] for 12+34, [1] for 13+24, [2] for 14+23
+               if(iMuon1->charge() + iMuon2->charge() + iMuon3->charge() + iMuon4->charge() != 0) continue;
 
                reco::Track muTrack1 = *iMuon1;
                reco::Track muTrack2 = *iMuon2;
@@ -361,6 +383,10 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
 
                if (!muonTT1.isValid() || !muonTT2.isValid() || !muonTT3.isValid() || !muonTT4.isValid())
                   continue;
+               
+               //check deltaR between muons
+               if (doIso && (deltaR(*iMuon1, *iMuon2) < 0.02 || deltaR(*iMuon1, *iMuon3) < 0.02 || deltaR(*iMuon1, *iMuon4) < 0.02 || deltaR(*iMuon2, *iMuon3) < 0.02 || deltaR(*iMuon2, *iMuon4) < 0.02 || deltaR(*iMuon3, *iMuon4) < 0.02))
+                  continue;
 
                TLorentzVector mu11P4tmp, mu12P4tmp, mu13P4tmp, mu14P4tmp, J11P4tmp, J12P4tmp, X1P4tmp;
                TLorentzVector mu21P4tmp, mu22P4tmp, mu23P4tmp, mu24P4tmp, J21P4tmp, J22P4tmp, X2P4tmp;
@@ -370,13 +396,13 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                KinematicParameters mu11Ktmp, mu12Ktmp, mu13Ktmp, mu14Ktmp, J11Ktmp, J12Ktmp, X1Ktmp;
                KinematicParameters mu21Ktmp, mu22Ktmp, mu23Ktmp, mu24Ktmp, J21Ktmp, J22Ktmp, X2Ktmp;
                KinematicParameters mu31Ktmp, mu32Ktmp, mu33Ktmp, mu34Ktmp, J31Ktmp, J32Ktmp, X3Ktmp;
-               float Muon11Mass, Muon12Mass, Muon13Mass, Muon14Mass;
-               float Muon21Mass, Muon22Mass, Muon23Mass, Muon24Mass;
-               float Muon31Mass, Muon32Mass, Muon33Mass, Muon34Mass;
-               float J11Mass, J12Mass, J21Mass, J22Mass, J31Mass, J32Mass;
-               float J11NoMassMass, J12NoMassMass, J21NoMassMass, J22NoMassMass, J31NoMassMass, J32NoMassMass;
-               float J11NoMassMassE, J12NoMassMassE, J21NoMassMassE, J22NoMassMassE, J31NoMassMassE, J32NoMassMassE;
-               float X1Mass, X2Mass, X3Mass;
+               float Muon11Mass = 0, Muon12Mass = 0, Muon13Mass = 0, Muon14Mass = 0;
+               float Muon21Mass = 0, Muon22Mass = 0, Muon23Mass = 0, Muon24Mass = 0;
+               float Muon31Mass = 0, Muon32Mass = 0, Muon33Mass = 0, Muon34Mass = 0;
+               float J11Mass = 0, J12Mass = 0, J21Mass = 0, J22Mass = 0, J31Mass = 0, J32Mass = 0;
+               float J11NoMassMass = 0, J12NoMassMass = 0, J21NoMassMass = 0, J22NoMassMass = 0, J31NoMassMass = 0, J32NoMassMass = 0;
+               float J11NoMassMassE = 0, J12NoMassMassE = 0, J21NoMassMassE = 0, J22NoMassMassE = 0, J31NoMassMassE = 0, J32NoMassMassE = 0;
+               float X1Mass = 0, X2Mass = 0, X3Mass = 0;
                float J11normchi2 = 999.0;
                float J11NoMassnormchi2 = 999.0;
                float J12normchi2 = 999.0;
@@ -420,7 +446,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   mu4Particles.push_back(pmumuFactory.particle(muonTT4, muon_mass, chi, ndf, muon_sigma));
 
                   if (dimuon1Particles.size() < 2 || dimuon2Particles.size() < 2 || mu4Particles.size() < 4)
-                     continue;
+                     goto match1;
 
                   KinematicParticleVertexFitter fitter1, fitter2, mu4fitter;
                   RefCountedKinematicTree psiVertexFitTree1, psiVertexFitTree2, XVertexFitTree;
@@ -443,9 +469,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicVertex X_vFit_vertex = XVertexFitTree->currentDecayVertex();
 
                      if (!psi_vFit1->currentState().isValid() || !psi_vFit2->currentState().isValid() || !X_vFit->currentState().isValid())
-                        continue;
+                        goto match1;
                      if (!psi_vFit_vertex1->vertexIsValid() || !psi_vFit_vertex2->vertexIsValid() || !X_vFit_vertex->vertexIsValid())
-                        continue;
+                        goto match1;
 
                      // KinematicParameters Jpara1 = psi_vFit1->currentState().kinematicParameters();
                      // KinematicParameters Jpara2 = psi_vFit2->currentState().kinematicParameters();
@@ -464,14 +490,16 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      double vProb2 = ChiSquaredProbability((double)(psi_vFit_vertex2->chiSquared()), (double)(psi_vFit_vertex2->degreesOfFreedom()));
                      // double XvProb = ChiSquaredProbability((double)(X_vFit_vertex->chiSquared()), (double)(X_vFit_vertex->degreesOfFreedom()));
                      if (vProb1 < JvPorbcut || vProb2 < JvPorbcut)
-                        continue;
+                        goto match1;
                      if (mu1->currentState().mass() <= MassMinCut || mu2->currentState().mass() <= MassMinCut || mu3->currentState().mass() <= MassMinCut || mu4->currentState().mass() <= MassMinCut || psi_vFit1->currentState().mass() <= MassMinCut || psi_vFit2->currentState().mass() <= MassMinCut || X_vFit->currentState().mass() <= MassMinCut)
-                        continue;
+                        goto match1;
                      if (psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6) < 0 || psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6) < 0 || X_vFit->currentState().kinematicParametersError().matrix()(6, 6) < 0)
-                        continue;
+                        goto match1;
                      float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
                      float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
-                     if (psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr))
+                     if (psi_vFit1->currentState().mass() > (myJmass - 2.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 2.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 2.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 2.0 * Jpsi2masserr) && vProb2 > ProbJcut && vProb1 > ProbJcut)
+                        continue;
+                     if (psi_vFit1->currentState().mass() >= psi_vFit2->currentState().mass() && psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr))
                      {
                         Y1pos = 1;
                         J11NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
@@ -483,7 +511,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J11NoMassMassE = Jpsi1masserr;
                         J12NoMassMassE = Jpsi2masserr;
                      }
-                     if (psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr) && vProb2 > vProb1)
+                     else if (psi_vFit2->currentState().mass() >= psi_vFit1->currentState().mass() && psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr))
                      {
                         Y1pos = 2;
                         J11NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
@@ -496,7 +524,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J12NoMassMassE = Jpsi1masserr;
                      }
                      else
-                        continue;
+                        goto match1;
 
                      // Mass Constraint Fit for J/psi
                      KinematicParticleVertexFitter kpvFitter;
@@ -520,8 +548,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicParticle MyChi1_part;
                      if (Y1pos == 1)
                      {
-                        jp1 = myJmass;
-                        jp_m_sigma1 = myJmasserr;
+                        jp1 = myYmass;
+                        jp_m_sigma1 = myYmasserr;
                         jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
                         try
                         {
@@ -591,8 +619,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      }
                      else if (Y1pos == 2)
                      {
-                        jp2 = myJmass;
-                        jp_m_sigma2 = myJmasserr;
+                        jp2 = myYmass;
+                        jp_m_sigma2 = myYmasserr;
                         jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
@@ -662,7 +690,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      }
                   }
                }
-
+            match1:
                // 13+24
                if ((iMuon1->charge() + iMuon3->charge()) == 0 && (iMuon2->charge() + iMuon4->charge()) == 0)
                {
@@ -687,7 +715,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   mu4Particles.push_back(pmumuFactory.particle(muonTT4, muon_mass, chi, ndf, muon_sigma));
 
                   if (dimuon1Particles.size() < 2 || dimuon2Particles.size() < 2 || mu4Particles.size() < 4)
-                     continue;
+                     goto match2;
 
                   KinematicParticleVertexFitter fitter1, fitter2, mu4fitter;
                   RefCountedKinematicTree psiVertexFitTree1, psiVertexFitTree2, XVertexFitTree;
@@ -710,9 +738,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicVertex X_vFit_vertex = XVertexFitTree->currentDecayVertex();
 
                      if (!psi_vFit1->currentState().isValid() || !psi_vFit2->currentState().isValid() || !X_vFit->currentState().isValid())
-                        continue;
+                        goto match2;
                      if (!psi_vFit_vertex1->vertexIsValid() || !psi_vFit_vertex2->vertexIsValid() || !X_vFit_vertex->vertexIsValid())
-                        continue;
+                        goto match2;
 
                      // KinematicParameters Jpara1 = psi_vFit1->currentState().kinematicParameters();
                      // KinematicParameters Jpara2 = psi_vFit2->currentState().kinematicParameters();
@@ -731,14 +759,16 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      double vProb2 = ChiSquaredProbability((double)(psi_vFit_vertex2->chiSquared()), (double)(psi_vFit_vertex2->degreesOfFreedom()));
                      // double XvProb = ChiSquaredProbability((double)(X_vFit_vertex->chiSquared()), (double)(X_vFit_vertex->degreesOfFreedom()));
                      if (vProb1 < JvPorbcut || vProb2 < JvPorbcut)
-                        continue;
+                        goto match2;
                      if (mu1->currentState().mass() <= MassMinCut || mu2->currentState().mass() <= MassMinCut || mu3->currentState().mass() <= MassMinCut || mu4->currentState().mass() <= MassMinCut || psi_vFit1->currentState().mass() <= MassMinCut || psi_vFit2->currentState().mass() <= MassMinCut || X_vFit->currentState().mass() <= MassMinCut)
-                        continue;
+                        goto match2;
                      if (psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6) < 0 || psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6) < 0 || X_vFit->currentState().kinematicParametersError().matrix()(6, 6) < 0)
-                        continue;
+                        goto match2;
                      float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
                      float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
-                     if (psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr))
+                     if (psi_vFit1->currentState().mass() > (myJmass - 2.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 2.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 2.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 2.0 * Jpsi2masserr) && vProb2 > ProbJcut && vProb1 > ProbJcut)
+                        continue;
+                     if (psi_vFit1->currentState().mass() >= psi_vFit2->currentState().mass() && psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr))
                      {
                         Y2pos = 1;
                         J21NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
@@ -750,7 +780,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J21NoMassMassE = Jpsi1masserr;
                         J22NoMassMassE = Jpsi2masserr;
                      }
-                     if (psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr) && vProb2 > vProb1)
+                     else if (psi_vFit2->currentState().mass() >= psi_vFit1->currentState().mass() && psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr))
                      {
                         Y2pos = 2;
                         J21NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
@@ -763,7 +793,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J22NoMassMassE = Jpsi1masserr;
                      }
                      else
-                        continue;
+                        goto match2;
 
                      // Mass Constraint Fit for J/psi
                      KinematicParticleVertexFitter kpvFitter;
@@ -787,8 +817,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicParticle MyChi1_part;
                      if (Y2pos == 1)
                      {
-                        jp1 = myJmass;
-                        jp_m_sigma1 = myJmasserr;
+                        jp1 = myYmass;
+                        jp_m_sigma1 = myYmasserr;
                         jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
                         try
                         {
@@ -858,8 +888,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      }
                      else if (Y2pos == 2)
                      {
-                        jp2 = myJmass;
-                        jp_m_sigma2 = myJmasserr;
+                        jp2 = myYmass;
+                        jp_m_sigma2 = myYmasserr;
                         jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
@@ -929,7 +959,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      }
                   }
                }
-
+            match2:
                // 14+23
                if ((iMuon1->charge() + iMuon4->charge()) == 0 && (iMuon2->charge() + iMuon3->charge()) == 0)
                {
@@ -954,7 +984,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   mu4Particles.push_back(pmumuFactory.particle(muonTT3, muon_mass, chi, ndf, muon_sigma));
 
                   if (dimuon1Particles.size() < 2 || dimuon2Particles.size() < 2 || mu4Particles.size() < 4)
-                     continue;
+                     goto match3;
 
                   KinematicParticleVertexFitter fitter1, fitter2, mu4fitter;
                   RefCountedKinematicTree psiVertexFitTree1, psiVertexFitTree2, XVertexFitTree;
@@ -977,9 +1007,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicVertex X_vFit_vertex = XVertexFitTree->currentDecayVertex();
 
                      if (!psi_vFit1->currentState().isValid() || !psi_vFit2->currentState().isValid() || !X_vFit->currentState().isValid())
-                        continue;
+                        goto match3;
                      if (!psi_vFit_vertex1->vertexIsValid() || !psi_vFit_vertex2->vertexIsValid() || !X_vFit_vertex->vertexIsValid())
-                        continue;
+                        goto match3;
 
                      // KinematicParameters Jpara1 = psi_vFit1->currentState().kinematicParameters();
                      // KinematicParameters Jpara2 = psi_vFit2->currentState().kinematicParameters();
@@ -998,14 +1028,16 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      double vProb2 = ChiSquaredProbability((double)(psi_vFit_vertex2->chiSquared()), (double)(psi_vFit_vertex2->degreesOfFreedom()));
                      // double XvProb = ChiSquaredProbability((double)(X_vFit_vertex->chiSquared()), (double)(X_vFit_vertex->degreesOfFreedom()));
                      if (vProb1 < JvPorbcut || vProb2 < JvPorbcut)
-                        continue;
+                        goto match3;
                      if (mu1->currentState().mass() <= MassMinCut || mu2->currentState().mass() <= MassMinCut || mu3->currentState().mass() <= MassMinCut || mu4->currentState().mass() <= MassMinCut || psi_vFit1->currentState().mass() <= MassMinCut || psi_vFit2->currentState().mass() <= MassMinCut || X_vFit->currentState().mass() <= MassMinCut)
-                        continue;
+                        goto match3;
                      if (psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6) < 0 || psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6) < 0 || X_vFit->currentState().kinematicParametersError().matrix()(6, 6) < 0)
-                        continue;
+                        goto match3;
                      float Jpsi1masserr = sqrt(psi_vFit1->currentState().kinematicParametersError().matrix()(6, 6));
                      float Jpsi2masserr = sqrt(psi_vFit2->currentState().kinematicParametersError().matrix()(6, 6));
-                     if (psi_vFit1->currentState().mass() > (myJmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 3.0 * Jpsi1masserr))
+                     if (psi_vFit1->currentState().mass() > (myJmass - 2.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myJmass + 2.0 * Jpsi1masserr) && psi_vFit2->currentState().mass() > (myJmass - 2.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 2.0 * Jpsi2masserr) && vProb2 > ProbJcut && vProb1 > ProbJcut)
+                        continue;
+                     if (psi_vFit1->currentState().mass() >= psi_vFit2->currentState().mass() && psi_vFit1->currentState().mass() > (myYmass - 3.0 * Jpsi1masserr) && psi_vFit1->currentState().mass() < (myYmass + 3.0 * Jpsi1masserr))
                      {
                         Y3pos = 1;
                         J31NoMassKtmp = psi_vFit1->currentState().kinematicParameters();
@@ -1017,7 +1049,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J31NoMassMassE = Jpsi1masserr;
                         J32NoMassMassE = Jpsi2masserr;
                      }
-                     if (psi_vFit2->currentState().mass() > (myJmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myJmass + 3.0 * Jpsi2masserr) && vProb2 > vProb1)
+                     else if (psi_vFit2->currentState().mass() >= psi_vFit1->currentState().mass() && psi_vFit2->currentState().mass() > (myYmass - 3.0 * Jpsi2masserr) && psi_vFit2->currentState().mass() < (myYmass + 3.0 * Jpsi2masserr))
                      {
                         Y3pos = 2;
                         J31NoMassKtmp = psi_vFit2->currentState().kinematicParameters();
@@ -1030,7 +1062,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                         J32NoMassMassE = Jpsi1masserr;
                      }
                      else
-                        continue;
+                        goto match3;
 
                      // Mass Constraint Fit for J/psi
                      KinematicParticleVertexFitter kpvFitter;
@@ -1054,8 +1086,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      RefCountedKinematicParticle MyChi1_part;
                      if (Y3pos == 1)
                      {
-                        jp1 = myJmass;
-                        jp_m_sigma1 = myJmasserr;
+                        jp1 = myYmass;
+                        jp_m_sigma1 = myYmasserr;
                         jpsi_c1 = new MassKinematicConstraint(jp1, jp_m_sigma1);
                         try
                         {
@@ -1125,8 +1157,8 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      }
                      else if (Y3pos == 2)
                      {
-                        jp2 = myJmass;
-                        jp_m_sigma2 = myJmasserr;
+                        jp2 = myYmass;
+                        jp_m_sigma2 = myYmasserr;
                         jpsi_c2 = new MassKinematicConstraint(jp2, jp_m_sigma2);
                         try
                         {
@@ -1196,9 +1228,9 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                      }
                   }
                }
-
+            match3:
                // Choose Best Combination to Save
-               if (X1normchi2 <= X2normchi2 && X1normchi2 <= X3normchi2 && X1normchi2 >= 0 && X1normchi2 < 900 && npairs < 36)
+               if (abs(J11NoMassMass - myYmass) <= abs(J21NoMassMass - myYmass) && abs(J11NoMassMass - myYmass) <= abs(J31NoMassMass - myYmass) && X1normchi2 >= 0 && X1normchi2 < 900 && npairs < 36)
                {
                   Muon1Charge_[npairs] = iMuon1->charge();
                   Muon2Charge_[npairs] = iMuon2->charge();
@@ -1248,10 +1280,11 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   J2NoMassMass_[npairs] = J12NoMassMass;
                   J1NoMassMassE_[npairs] = J11NoMassMassE;
                   J2NoMassMassE_[npairs] = J12NoMassMassE;
+                  type_[npairs] = 1;
 
                   npairs++;
                }
-               else if (X2normchi2 <= X1normchi2 && X2normchi2 <= X3normchi2 && X2normchi2 >= 0 && X2normchi2 < 900 && npairs < 36)
+               else if (abs(J21NoMassMass - myYmass) <= abs(J11NoMassMass - myYmass) && abs(J21NoMassMass - myYmass) <= abs(J31NoMassMass - myYmass) && X2normchi2 >= 0 && X2normchi2 < 900 && npairs < 36)
                {
                   Muon1Charge_[npairs] = iMuon1->charge();
                   Muon2Charge_[npairs] = iMuon2->charge();
@@ -1301,10 +1334,11 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   J2NoMassMass_[npairs] = J22NoMassMass;
                   J1NoMassMassE_[npairs] = J21NoMassMassE;
                   J2NoMassMassE_[npairs] = J22NoMassMassE;
+                  type_[npairs] = 2;
 
                   npairs++;
                }
-               else if (X3normchi2 <= X1normchi2 && X3normchi2 <= X2normchi2 && X3normchi2 >= 0 && X3normchi2 < 900 && npairs < 36)
+               else if (abs(J31NoMassMass - myYmass) <= abs(J11NoMassMass - myYmass) && abs(J31NoMassMass - myYmass) <= abs(J21NoMassMass - myYmass) && X3normchi2 >= 0 && X3normchi2 < 900 && npairs < 36)
                {
                   Muon1Charge_[npairs] = iMuon1->charge();
                   Muon2Charge_[npairs] = iMuon2->charge();
@@ -1354,6 +1388,7 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
                   J2NoMassMass_[npairs] = J32NoMassMass;
                   J1NoMassMassE_[npairs] = J31NoMassMassE;
                   J2NoMassMassE_[npairs] = J32NoMassMassE;
+                  type_[npairs] = 3;
 
                   npairs++;
                }
@@ -1371,8 +1406,33 @@ void X4muSecondaryVertexProducer::produce(edm::Event &iEvent, edm::EventSetup co
    clearVars();
 }
 
+UInt_t X4muSecondaryVertexProducer::getTriggerBits(const edm::Event& iEvent ) {
+   UInt_t trigger = 0;
+   edm::Handle<edm::TriggerResults> triggerresults;
+   iEvent.getByToken(triggerresults_, triggerresults);
+   if (triggerresults.isValid()) {
+      const edm::TriggerNames & TheTriggerNames = iEvent.triggerNames(*triggerresults);
+      for (unsigned int i = 0; i < FilterNames_.size(); i++) {
+         bool matched = false;
+	 for (int version = 1; (version < 99 && (!matched)) ; version++) {
+	    std::stringstream ss;
+	    ss << FilterNames_[i] << "_v" << version;
+	    unsigned int bit = TheTriggerNames.triggerIndex(edm::InputTag(ss.str()).label());
+	    if (bit < triggerresults->size() && triggerresults->accept(bit) && !triggerresults->error(bit)) matched = true;
+	 }
+         if (matched) trigger += (1<<i);
+      }
+   } else std::cout << "MMrootupler::getTriggerBits: *** NO triggerResults found *** " << iEvent.id().run() << "," << iEvent.id().event() << std::endl;
+   return trigger;
+}
+
 void X4muSecondaryVertexProducer::clearVars()
 {
+   run = 0;
+   event = 0;
+   lumiblock = 0;
+   trigger = 0;
+   
    for (size_t i = 0; i < 36; i++)
    {
       Muon1Charge_[i] = 0;
@@ -1423,6 +1483,7 @@ void X4muSecondaryVertexProducer::clearVars()
       J2NoMassMass_[i] = 0;
       J1NoMassMassE_[i] = 0;
       J2NoMassMassE_[i] = 0;
+      type_[i] = 0;
    }
 }
 
@@ -1431,7 +1492,12 @@ void X4muSecondaryVertexProducer::fillDescriptions(edm::ConfigurationDescription
    edm::ParameterSetDescription desc;
    desc.add<edm::InputTag>("recoMuon", edm::InputTag("recoMuon"));
    desc.add<edm::InputTag>("recoTrack", edm::InputTag("recoTrack"));
-
+   desc.add<edm::InputTag>("TriggerResults");
+   desc.add<std::vector<std::string>>("FilterNames");
+   desc.add<double>("MesonMass");
+   desc.add<double>("MesonMassErr");
+   desc.add<double>("ExMesonMass");
+   desc.add<bool>("doIso");
    descriptions.add("X4muSecondaryVertexProducer", desc);
 }
 
